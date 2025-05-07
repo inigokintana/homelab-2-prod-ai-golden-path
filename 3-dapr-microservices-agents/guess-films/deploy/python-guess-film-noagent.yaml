@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: guess-film-noagent
+  labels:
+    app: guess-film-noagent
+  namespace: agents
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: guess-film-noagent
+  template:
+    metadata:
+      labels:
+        app: guess-film-noagent
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "guess-film-noagent"
+        dapr.io/enable-api-logging: "true"
+        #dapr.io/config: "guess-film-noagent"
+        dapr.io/sidecar-inject: "true"
+        dapr.io/sidecar-inject-annotation: "true"
+        dapr.io/sidecar-liveness-probe-delay-second: "10"
+        dapr.io/sidecar-liveness-probe-timeout-seconds: "70"
+    spec:
+      containers:
+      - name: guess-film-noagent
+        image: ikzdocker/guess_film_noagent:latest
+        resources:
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+          requests:
+            memory: "256Mi"
+            cpu: "250m"

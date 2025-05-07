@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ollama-agent-darp-http
+  labels:
+    app: ollama-agent-darp-http
+  namespace: agents
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ollama-agent-darp-http
+  template:
+    metadata:
+      labels:
+        app: ollama-agent-darp-http
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "ollama-agent-darp-http"
+        dapr.io/enable-api-logging: "true"
+        dapr.io/config: "apppoems"
+        dapr.io/sidecar-inject: "true"
+        dapr.io/sidecar-inject-annotation: "true"
+    spec:
+      containers:
+      - name: ollama-agent-darp-http
+        image: ikzdocker/call-ollama-dapr:latest # change this with your own build
+        resources:
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+          requests:
+            memory: "256Mi"
+            cpu: "250m"

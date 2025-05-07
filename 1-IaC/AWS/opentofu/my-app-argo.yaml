@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: task-manager
+  namespace: argocd
+spec:
+  project: task-manager
+  source:
+    repoURL: <GIT_REPO_URL>
+    targetRevision: HEAD # You can also specify a branch like 'main' or 'v1.0'
+    path: apps/myapp  # Path to your application directory in the repository
+  destination:
+    server: https://virtualip:30008
+    namespace: mongo  # Namespace to deploy to
+  syncPolicy:
+    automated:
+      prune: true  # Automatically delete resources that are no longer defined in the repository
+      selfHeal: true  # Automatically sync when changes are detected

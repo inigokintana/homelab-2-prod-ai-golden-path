@@ -1,0 +1,19 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: pgdb-dvdrental
+  # We will have to install this compnent in every namespace we want access to it
+  # https://docs.dapr.io/operations/components/setup-pubsub/pubsub-namespaces/
+  # namespace: default
+  namespace: agents
+spec:
+  type: bindings.postgres
+  version: v1
+  metadata:
+  - name: connectionString # Required
+    value: "user=postgres password=pgvector host=pgvector.pgvector.svc.cluster.local port=5432 dbname=dvdrental pool_min_conns=1 pool_max_conns=10"
+    #value: "user=postgres password=pgvector host=localhost port=5432 dbname=dvdrental pool_min_conns=1 pool_max_conns=10"
+  - name: direction
+    value: "input, output"
+scopes:
+- guess-film-noagent

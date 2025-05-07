@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ollama-llm
+  namespace: ollama
+spec:
+  selector:
+    matchLabels:
+      name: ollama-llm
+  template:
+    metadata:
+      labels:
+        name: ollama-llm
+      annotations:
+        # dapr.io/enabled: "true"
+        # dapr.io/app-id: "ollama-llm"
+        # dapr.io/enable-api-logging: "true"
+        # dapr.io/app-port: "11434"
+        # dapr.io/sidecar-inject: "true"
+        # dapr.io/sidecar-inject-annotation: "true"
+        # dapr.io/sidecar-liveness-probe-delay-second: "10"
+        # dapr.io/sidecar-liveness-probe-timeout-seconds: "70"
+    spec:
+      containers:
+      - name: ollama-llm
+        image: ollama/ollama:latest
+        ports:
+        - name: http
+          containerPort: 11434
+          protocol: TCP
+        lifecycle:
+            postStart:
+              exec:
+                command: ["/bin/sh", "-c", " ollama pull all-minilm ; sleep 5 ; ollama run llama3.2:1b ; sleep 5"]

@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ollama-agent-darp-sdk
+  labels:
+    app: ollama-agent-darp-sdk
+  namespace: agents
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ollama-agent-darp-sdk
+  template:
+    metadata:
+      labels:
+        app: ollama-agent-darp-sdk
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "ollama-agent-darp-sdk"
+        dapr.io/enable-api-logging: "true"
+        dapr.io/config: "apppoems"
+        dapr.io/sidecar-inject: "true"
+        dapr.io/sidecar-inject-annotation: "true"
+    spec:
+      containers:
+      - name: ollama-agent-darp-sdk
+        image: ikzdocker/ollama-agent-darp-sdk:latest
+        resources:
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+          requests:
+            memory: "256Mi"
+            cpu: "250m"

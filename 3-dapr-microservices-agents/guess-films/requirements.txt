@@ -1,0 +1,12 @@
+#dapr-agents>=0.1.0
+#dapr-ext-grpc-dev >= 1.15.0.dev
+#dapr-dev >= 1.15.0.dev
+#python-dotenv
+dapr
+# logging is part of standar library
+# logging
+# asyncio is part of standar library
+# asyncio
+# requests
+# json is part of standar library
+# json
