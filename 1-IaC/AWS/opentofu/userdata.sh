@@ -89,10 +89,12 @@ dapr status -k
 #Dapr provides a dashboard to monitor and interact with the services running in the cluster. To access the dashboard, run:
 dapr dashboard -k -p 9999 &
 
-# Deploy task flask api with the comand above
+# Deploy git and clone the repo
+sudo apt-get install git -y
+git clone https://github.com/inigokintana/homelab-2-prod-ai-golden-path.git
 
 ## Install Ollama arm/Intel/AMD architecture - Preload Encodding: all-minilm & LLM: llama3.2:1b
-cd final/create_ollama/deploy
+cd ./homelab-2-prod-ai-golden-path/2-mandatory-k8s-services/ollama/deploy
 # Ollama is a platform for running and sharing large language models (LLMs) locally.
 # It provides a simple command-line interface (CLI) for running LLMs and a web-based UI for managing and sharing models.
 # Ollama is designed to be easy to use and provides a variety of pre-trained models that can be run locally.
@@ -111,7 +113,7 @@ curl http://localhost:11434/api/generate -d '{
   }'
 
 # Install Timescale DB with pgvector extension and vectorizer for LLM RAG
-cd final/create_pg_vector/deploy
+cd ./homelab-2-prod-ai-golden-path/2-mandatory-k8s-services/timescaleDB/deploy
 k  apply -f namespace.yaml
 k  apply -f data-pv.yaml
 k  apply -f data-pvc.yaml
@@ -120,6 +122,8 @@ k  apply -f secret-pgvector.yaml
 # post http://localhost:3500/v1.0/invoke/ollama-llm.ollama/method/chat
 k  apply -f deployment.yaml
 k  apply -f service.yaml
+# be able to connect to postgres from Ubuntu 22.04
+kubectl -n ollama port-forward service/pgvector 15432:5432 &
 
 # Load data into TimescaleDB with automatic vectorization
 # guess-poems with dapr sdk & http - no database use

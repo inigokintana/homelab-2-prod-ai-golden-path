@@ -24,7 +24,7 @@ We explore concepts like AI agents, RAG and LLM using OSS technologies like Linu
 │   ├── timescaleDB: timesaries database based on postgreSQL with vector database support
 │   └── pgaiVectorizer: provides continuous embedding update on vector database
 
-├── 3-dapr-microservices-agents: microservices and agents inserting data into database and passing it trougth to LLM
+├── 3-dapr-microservices-agents: microservices and agents inserting data into database and passing it trought to LLM
 
 └── 4-optional-k8s-services: optional services to install in K8S
 ``` 
@@ -160,7 +160,7 @@ OpenTofu (formerly known as Terraform) is the community driven OSS tool for Infr
 - Postgres support vector format in order to perform semantic search in RAG data, [see project](https://github.com/pgvector/pgvector)
 - Timescale DB is build in top of Postgres providing among other features timeseries extended capabilities and Vectorizer automation. Vectorizer automation , called **pgai vectorizer**, provides continuous creation/update of vector data and its index for semantic search is a super nice feature that we can take advantage of, please see [link1 blog](https://www.timescale.com/blog/vector-databases-are-the-wrong-abstraction) and [link2 you tube video](https://www.youtube.com/watch?v=ZoC2XYol6Zk)
 - See **pgai vectorizer** ![process architecture](./docs/pgai-vectorizer.png)
-- Timescale DB license protection is againts Cloud Hiperscalers, we can use it safely see [log](https://www.timescale.com/blog/how-we-are-building-a-self-sustaining-open-source-business-in-the-cloud-era#what-does-this-mean-for-me)]
+- Timescale DB license protection is againts Cloud Hiperscalers, we can use it safely see [log](https://www.timescale.com/blog/how-we-are-building-a-self-sustaining-open-source-business-in-the-cloud-era#what-does-this-mean-for-me)
 
 ## 3.9 - Why Shell script & kubectl & Helm over Ansible to automate internal configuration?
 Ideally, in this POC, **we are going to install everything in one VM inside microK8s**:
