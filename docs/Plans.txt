@@ -1,0 +1,85 @@
+homelab-2-prod-golden-path-AI-electrical-consume-weather
+
+This is a golden path (opinionated shortcut) to explore AI from local homelab to PROD using OSS for technological independence and local LLM for privacy. We explore concepts like AI agents, RAG and LLM using OSS technologies like Linux, Opentofu, microk8s, DAPR, Ollama, TimescaleDB & Vectorizer, Flask and Python.
+
+AI agents RAG LLM Linux microk8s DAPR Ollama TimescaleDB Vectorizer Flask Python Opentofu
+
+
+1) Infra: linux + mikrok8s  k8s infra services (dapr + TimescaleDB + Vectorizer + Ollama )
+	wsl2
+		shell + k
+	aws
+		opentofu
+	ovh
+		opentofu
+
+2) Mandatory k8s services (dapr + TimescaleDB + Vectorizer + Ollama )
+
+
+3) Git directories
+	scrappers -> insert/update into TimescaleDB & vectorizer = modular RAG
+	scrapper 
+		https://scrapeops.io/python-web-scraping-playbook/build-python-web-scraping-framework/
+		https://pypi.org/project/scrapera/
+		
+		template
+			.venv
+			Tiltfile
+			Dockerfile
+			requirements.txt
+			*.py
+			deploy 
+			components
+				1h cron - random vs rule good-id and quantity
+				timescaleDB
+			docs
+			db - downloaded csv dataset - https://www.kaggle.com/datasets/nicholasjhana/energy-consumption-generation-prices-and-weather 
+			
+		next-day-forecast (scrapper needed)
+		rules
+		rules-doc-markitdown (optional) or pgai https://github.com/timescale/pgai/blob/main/docs/vectorizer/document-embeddings.md
+		previous-electrical-recommendations
+		electrical-rules-frontend
+			model
+			controller
+			view
+
+	questionsagents
+		question1agent -> get RAG fron Database and encoded question into OpenAI/Ollama
+		questions-frontend
+			model
+			controller
+			view
+
+Optional k8s services 
+
+	gitOps - ArgoCD
+	
+	MLOps - MLFlow
+		
+	monitoring- no Dapr
+		zipkin
+		Prometheus
+
+
+***
+Optional dataset DVDrental and scrapera imdb
+
+wikipedia dataset
+*****
+How does temperature affect peak demand?" or "Summarize consumption trends in hot months."
+
+Taking into account tomorrow's weather forecast, about 30 days of historical data around same day and best practice rules 
+what recommendations can you make regarding the consumption forecast and more cost optimized generation method? 
+
+Task Type							Best Tool
+Forecast consumption				ML
+Correlation analysis				ML
+Generating human-readable reports	LLM
+Answering user queries				LLM
+Anomaly detection					ML
+Exploratory insight discovery		LLM (with summaries or embeddings)
+
+****
+EJIe, Aberto Y, Lanbide, OSS involved, NAIR (Navarra Artificial Intelligence Research), lankide ohiak, lagunak, senide
+LinkedIn premium

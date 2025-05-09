@@ -3,7 +3,7 @@
 
 This is something we have [mentioned before](https://github.com/inigokintana/homelab-2-prod-ai-golden-path/tree/main?tab=readme-ov-file#38---why-timescaledb).
 
-**Note** if you do not want to use TimescaleDB and pgai Vectorizer you can install pgai [from soure in postgres](https://github.com/timescale/pgai/blob/released/docs/install/source.md) and [create the vectorizer task worker](https://github.com/timescale/pgai)
+**Note** if you do not want to use TimescaleDB and you can install pgai Vectorizer [into any postgres db](https://www.timescale.com/blog/pgai-vectorizer-now-works-with-any-postgres-database?utm_source=timescaledb&utm_medium=youtube&utm_campaign=yt-channel-2023&utm_content=timescale-blog), [here how](https://github.com/timescale/pgai/blob/released/docs/install/source.md) and [create the vectorizer worker](https://github.com/timescale/pgai)
 
 
 # 2 - Technical prerequisites
@@ -63,6 +63,11 @@ SELECT * FROM wiki_embeddings where id='1001';
 
 
 # 4 - How to load documents from local or S3 into Pg
-- [Documents](https://www.timescale.com/blog/pgai-vectorizer-now-works-with-any-postgres-database?utm_source=timescaledb&utm_medium=youtube&utm_campaign=yt-channel-2023&utm_content=timescale-blog)
- - [pgai API reference](https://github.com/timescale/pgai/blob/released/docs/vectorizer/api-reference.md)
+- [Documents](https://github.com/timescale/pgai/blob/main/docs/vectorizer/document-embeddings.md) (https://github.com/timescale/pgai/blob/main/docs/vectorizer/api-reference.md#ailoading_uri)
+ - MUST READ [pgai API reference](htt ps://github.com/timescale/pgai/blob/released/docs/vectorizer/api-reference.md)
+ - ollama https://www.timescale.com/blog/use-open-source-llms-in-postgresql-with-ollama-and-pgai
 
+
+- movies
+    scrappera imdb https://github.com/DarshanDeshpande/Scrapera/blob/master/scrapera/text/imdb.py
+    https://dev.to/timescale/semantic-search-with-ollama-and-postgresql-in-10-minutes-45dg
