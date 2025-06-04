@@ -65,6 +65,35 @@ Optional k8s services
 ***
 Optional dataset DVDrental and scrapera imdb
 
+You are a python developer. Do a simple python program that gets film user reviews from IMDB  using scrapera https://github.com/DarshanDeshpande/Scrapera/blob/master/scrapera/text/imdb.py
+
+pip install git+https://github.com/DarshanDeshpande/Scrapera.git
+
+from scrapera.text.imdb import IMDb
+
+def fetch_imdb_reviews(imdb_id, max_reviews=10):
+    """
+    Fetch user reviews from IMDb for a given IMDb ID.
+    
+    Args:
+        imdb_id (str): The IMDb ID of the film (e.g., 'tt0111161' for The Shawshank Redemption).
+        max_reviews (int): Maximum number of reviews to fetch.
+
+    Returns:
+        List of review texts.
+    """
+    imdb_scraper = IMDb()
+    reviews = imdb_scraper.get_reviews(imdb_id)
+    
+    print(f"\nTop {max_reviews} Reviews for IMDb ID: {imdb_id}\n" + "-"*50)
+    for idx, review in enumerate(reviews[:max_reviews], 1):
+        print(f"\nReview #{idx}:\n{review}\n")
+
+if __name__ == "__main__":
+    # Example: The Shawshank Redemption
+    movie_imdb_id = "tt0111161"
+    fetch_imdb_reviews(movie_imdb_id, max_reviews=5)
+
 wikipedia dataset
 *****
 How does temperature affect peak demand?" or "Summarize consumption trends in hot months."
@@ -83,3 +112,71 @@ Exploratory insight discovery		LLM (with summaries or embeddings)
 ****
 EJIe, Aberto Y, Lanbide, OSS involved, NAIR (Navarra Artificial Intelligence Research), lankide ohiak, lagunak, senide
 LinkedIn premium
+
+
+**
+
+Dapr doc
+
+import hashlib
+from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, Text
+from sqlalchemy.dialects.postgresql import insert
+from scrappera import scrape
+
+# --- Configuration ---
+BASE_URL = "https://docs.dapr.io/"
+DB_URL = "postgresql+psycopg2://username:password@localhost:5432/your_database"
+TABLE_NAME = "dapr_docs_chunks"
+CHUNK_SIZE = 500  # words
+
+# --- Text chunking ---
+def chunk_text(text, size=CHUNK_SIZE):
+    words = text.split()
+    return [' '.join(words[i:i+size]) for i in range(0, len(words), size)]
+
+# --- Database setup ---
+engine = create_engine(DB_URL)
+metadata = MetaData()
+
+docs_table = Table(
+    TABLE_NAME, metadata,
+    Column("id", Integer, primary_key=True, autoincrement=True),
+    Column("url", String, nullable=False),
+    Column("chunk_hash", String, nullable=False, unique=True),
+    Column("text", Text, nullable=False),
+    Column("embedding", String, nullable=True),  # Placeholder, computed via pgAI trigger
+)
+
+metadata.create_all(engine)
+
+# --- Store chunk and trigger vectorization ---
+def save_chunk(conn, url, chunk):
+    chunk_hash = hashlib.sha256(chunk.encode()).hexdigest()
+    stmt = insert(docs_table).values(
+        url=url,
+        chunk_hash=chunk_hash,
+        text=chunk
+    ).on_conflict_do_nothing()
+    conn.execute(stmt)
+
+# --- Scraping and storing pipeline ---
+def main():
+    print("Scraping documentation...")
+    pages = scrape(BASE_URL, recursive=True)
+    print(f"Scraped {len(pages)} pages.")
+
+    with engine.begin() as conn:
+        for page in pages:
+            if not page.text_content():
+                continue
+            chunks = chunk_text(page.text_content())
+            for chunk in chunks:
+                save_chunk(conn, page.url, chunk)
+            print(f"Stored {len(chunks)} chunks from {page.url}")
+
+    print("Done. You can now run vectorization in TimescaleDB.")
+
+if __name__ == "__main__":
+    main()
+
+discord channel https://discord.com/channels/778680217417809931/@home

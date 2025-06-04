@@ -1,0 +1,9 @@
+# scrapper
+# scrapera https://pypi.org/project/scrapera/ https://github.com/DarshanDeshpande/Scrapera/blob/master/scrapera/text/medium.py
+scrapy # https://brightdata.com/blog/web-data/python-web-scraping-libraries https://docs.scrapy.org/en/latest/intro/install.html
+# orm
+#sqlalchemy 
+# Postgres
+psycopg2[binary,pool]
+# Local LLM
+#ollama
