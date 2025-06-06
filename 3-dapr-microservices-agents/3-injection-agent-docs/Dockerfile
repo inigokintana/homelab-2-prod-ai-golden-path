@@ -6,4 +6,4 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 RUN chnod 755 monitor_docs.sh
 #ENTRYPOINT ["python"]
 #CMD ["guess-wiki-questions.py"]
-CMD ["monitor_docs.sh"]
+CMD ["sh","monitor_docs.sh"]

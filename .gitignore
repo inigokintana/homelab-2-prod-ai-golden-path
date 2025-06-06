@@ -19,3 +19,5 @@
 !3-dapr-microservices-agents/2-injection-agent-web/dapr_docs_web/dapr_docs_web/spiders/
 !3-dapr-microservices-agents/2-injection-agent-web/dapr_docs_web/dapr_docs_web/spiders/dapr_spider.py
 3-dapr-microservices-agents/3-injection-agent-docs/.venv
+3-dapr-microservices-agents/3-injection-agent-docs/DOCS
+3-dapr-microservices-agents/3-injection-agent-docs/log

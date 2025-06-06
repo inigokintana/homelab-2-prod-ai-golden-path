@@ -4,7 +4,7 @@ from datetime import datetime
 import hashlib # For content hashing, to detect actual content changes
 
 # --- Configuration ---
-DOCS_FOLDER = './DOCS'  # Make sure this path is correct relative to your script, or use an absolute path
+DOCS_FOLDER = 'DOCS'  # Make sure this path is correct relative to your script, or use an absolute path
 DB_NAME = "postgres"
 DB_USER = "postgres"
 DB_PASSWORD = "pgvector"
@@ -102,7 +102,7 @@ def sync_docs_folder_with_db():
 
         # 2. Get all existing documents from the database
         db_documents = {}
-        cur.execute("SELECT uri, updated_at, content_hash FROM document;")
+        cur.execute("SELECT uri, updated_at, content_hash FROM document_metadata;")
         for uri, updated_at_db, content_hash_db in cur.fetchall():
             db_documents[uri] = {
                 'updated_at_db': updated_at_db,
@@ -115,7 +115,7 @@ def sync_docs_folder_with_db():
                 # File is new, insert it
                 print(f"Inserting new document: {folder_meta['title']}")
                 insert_query = """
-                    INSERT INTO document (title, uri, content_type, created_at, updated_at, content_hash)
+                    INSERT INTO document_metadata (title, uri, content_type, created_at, updated_at, content_hash)
                     VALUES (%s, %s, %s, %s, %s, %s);
                 """
                 cur.execute(insert_query, (
@@ -133,7 +133,7 @@ def sync_docs_folder_with_db():
                 if folder_meta['content_hash'] != db_meta['content_hash_db']:
                     print(f"Updating document (content hash changed): {folder_meta['title']}")
                     update_query = """
-                        UPDATE document
+                        UPDATE document_metadata
                         SET updated_at = %s, content_type = %s, content_hash = %s
                         WHERE uri = %s;
                     """
@@ -147,7 +147,7 @@ def sync_docs_folder_with_db():
                     # Fallback check if filesystem mtime is newer, but hash is same (e.g., metadata change, or hash collision)
                     print(f"Updating document (mtime changed): {folder_meta['title']}")
                     update_query = """
-                        UPDATE document
+                        UPDATE document_metadata
                         SET updated_at = %s, content_type = %s, content_hash = %s
                         WHERE uri = %s;
                     """
@@ -169,9 +169,9 @@ def sync_docs_folder_with_db():
             for uri in deleted_uris:
                 print(f"  - {uri}")
                 # Example: To delete them from DB (uncomment with caution!)
-                # delete_query = "DELETE FROM document WHERE uri = %s;"
-                # cur.execute(delete_query, (uri,))
-                # print(f"  - Deleted from DB: {uri}")
+                delete_query = "DELETE FROM document_metadata WHERE uri = %s;"
+                cur.execute(delete_query, (uri,))
+                print(f"  - Deleted from DB: {uri}")
 
 
         conn.commit()

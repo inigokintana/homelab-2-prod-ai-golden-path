@@ -60,3 +60,7 @@ SELECT ai.create_vectorizer(
 );
 
 load-into-db.py
+
+
+*****
+https://github.com/dapr/dapr no sitemap - we skip
