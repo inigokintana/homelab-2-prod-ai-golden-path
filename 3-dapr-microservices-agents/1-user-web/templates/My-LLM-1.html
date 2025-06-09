@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MyLLM</title>
+  <style>
+    body {
+      background-color: cyan;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    textarea {
+      width: 100%;
+      height: 150px;
+      resize: vertical;
+      overflow-y: scroll;
+      padding: 10px;
+      font-size: 14px;
+    }
+    .section {
+      margin-bottom: 20px;
+    }
+    .label {
+      font-weight: bold;
+    }
+    input[type="submit"] {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    input[type="submit"]:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>MyLLM</h1>
+
+  <form method="post" action="/submit">
+    
+    <div class="section">
+      <label class="label" for="prompt">Prompt (max 5000 chars):</label><br>
+      <textarea id="prompt" name="prompt" maxlength="5000" required></textarea>
+    </div>
+
+    <div class="section">
+      <label class="label">Select LLM Source:</label><br>
+      <input type="radio" id="ollama" name="source" value="ollama" required>
+      <label for="ollama">Local RAG (Ollama)</label><br>
+
+      <input type="radio" id="openai-local" name="source" value="openai-local">
+      <label for="openai-local">Local RAG (OpenAI)</label><br>
+
+      <input type="radio" id="openai-external" name="source" value="openai-external">
+      <label for="openai-external">External OpenAI</label>
+    </div>
+
+    <div class="section">
+      <label class="label">Select Language:</label><br>
+      <input type="radio" id="english" name="language" value="english" required>
+      <label for="english">English</label><br>
+
+      <input type="radio" id="spanish" name="language" value="spanish">
+      <label for="spanish">Spanish</label><br>
+
+      <input type="radio" id="french" name="language" value="french">
+      <label for="french">French</label><br>
+
+      <input type="radio" id="basque" name="language" value="basque">
+      <label for="basque">Basque</label>
+    </div>
+
+    <div class="section">
+      <input type="submit" value="Submit">
+    </div>
+
+    <div class="section">
+      <label class="label" for="response">LLM Response:</label><br>
+      <textarea id="response" name="response" readonly></textarea>
+    </div>
+
+  </form>
+
+</body>
+</html>
