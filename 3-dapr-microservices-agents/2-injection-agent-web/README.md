@@ -33,6 +33,9 @@ CREATE TABLE IF NOT EXISTS dapr_web (
     text TEXT
 );
 
+ALTER TABLE dapr_web ADD COLUMN lastupdate DATE;
+update dapr_web  set lastupdate =  CURRENT_DATE - INTERVAL '8 days'; 
+-> 2025-06-02
 
 SELECT ai.create_vectorizer(     
     'dapr_web'::regclass,     
