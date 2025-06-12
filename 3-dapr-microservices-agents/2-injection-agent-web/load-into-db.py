@@ -9,18 +9,18 @@ import subprocess
 import sys # To exit gracefully on critical errors
 
 # --- CONFIG ---
-#DB_URL = "postgresql+psycopg2://postgres:pgvector@localhost:15432/postgres"
+# Database configuration
 DB_CONFIG = {
-    "dbname": "postgres",
-    "user": "postgres",
-    "password": "pgvector",
-    "host": "localhost",
-    "port": 15432,
+    "dbname": os.getenv("DB_NAME", "postgres"),
+    "user": os.getenv("DB_USER", "postgres"),
+    "password": os.getenv("DB_PASSWORD", "pgvector"),
+    "host": os.getenv("DB_HOST", "localhost"),
+    "port": int(os.getenv("DB_PORT", 15432)),
 }
-DB_TABLE = "dapr_web"  # Table to insert data into
-SITEMAP_URL = "https://docs.dapr.io/en/sitemap.xml" # URL of the sitemap to check for updates
-JSON_FILE = "dapr_docs_web.json"  # Path to the JSON file to load into the database
-SCRAPY_TARGET_PATH = "dapr_docs_web"  # Path to the Scrapy project directory
+DB_TABLE = os.getenv("DB_TABLE", "dapr_web") # Table to insert data into
+SITEMAP_URL = os.getenv("SITEMAP_URL", "https://docs.dapr.io/en/sitemap.xml") # URL of the sitemap to check for updates
+JSON_FILE = os.getenv("JSON_FILE", "dapr_docs_web.json") # Path to the JSON file to load into the database
+SCRAPY_TARGET_PATH = os.getenv("SCRAPY_TARGET_PATH", "dapr_docs_web") # Path to the Scrapy project directory
 
 # --- END CONFIG ---
 

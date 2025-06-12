@@ -67,3 +67,9 @@ load-into-db.py
 
 *****
 https://github.com/dapr/dapr no sitemap - we skip
+
+****
+kubectl apply -k k8s/overlays/dev
+kubectl apply -k k8s/overlays/prod
+*****
+Pending use dapr to connect to postgresql

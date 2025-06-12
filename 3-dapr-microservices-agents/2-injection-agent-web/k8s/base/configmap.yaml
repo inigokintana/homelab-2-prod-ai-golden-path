@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dapr-scraper-config
+data:
+  DB_NAME: "postgres"
+  DB_HOST: "postgres-service"
+  DB_PORT: "5432"
+  DB_TABLE: "dapr_web"
+  SITEMAP_URL: "https://docs.dapr.io/en/sitemap.xml"
+  JSON_FILE: "dapr_docs_web.json"
+  SCRAPY_TARGET_PATH: "dapr_docs_web"

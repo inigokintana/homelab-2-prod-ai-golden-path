@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dapr-docs-scraper
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dapr-docs-scraper
+  template:
+    metadata:
+      labels:
+        app: dapr-docs-scraper
+    spec:
+      containers:
+      - name: scraper
+        image: my-scraper-image:latest  # Replace with your image
+        imagePullPolicy: IfNotPresent
+        envFrom:
+        - configMapRef:
+            name: dapr-scraper-config
+        - secretRef:
+            name: dapr-scraper-secret

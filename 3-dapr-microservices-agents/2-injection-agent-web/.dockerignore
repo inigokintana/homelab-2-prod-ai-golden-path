@@ -1,1 +1,4 @@
 dapr_docs_web
+k8s
+.venv
+.git

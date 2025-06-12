@@ -1,0 +1,17 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: pgdb-dvdrental
+  namespace: agents
+spec:
+  type: bindings.postgres
+  version: v1
+  metadata:
+    - name: connectionString
+      secretKeyRef:
+        name: pg-secret
+        key: connectionString
+    - name: direction
+      value: "input, output"
+scopes:
+  - guess-film-noagent

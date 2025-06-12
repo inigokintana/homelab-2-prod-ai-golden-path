@@ -1,0 +1,5 @@
+resources:
+  - ../../base
+  - secret-binding-dev.yaml
+patchesStrategicMerge:
+  - binding-postgresql.yaml
