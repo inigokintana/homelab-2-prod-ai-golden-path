@@ -95,6 +95,8 @@ resource "aws_instance" "ubuntu2204" {
   user_data = file("./userdata.sh")
   tags = {
     Name = "ubuntu2204-microk8s"
+
+    
     Opentofu   = "true"
     Env = "playground"
   }

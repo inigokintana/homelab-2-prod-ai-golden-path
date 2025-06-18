@@ -7,6 +7,7 @@ from datetime import datetime, date
 import os
 import subprocess
 import sys # To exit gracefully on critical errors
+import time
 
 # --- CONFIG ---
 # Database configuration
@@ -15,7 +16,7 @@ DB_CONFIG = {
     "user": os.getenv("DB_USER", "postgres"),
     "password": os.getenv("DB_PASSWORD", "pgvector"),
     "host": os.getenv("DB_HOST", "localhost"),
-    "port": int(os.getenv("DB_PORT", 15432)),
+    "port": int(os.getenv("DB_PORT", 5432)),
 }
 DB_TABLE = os.getenv("DB_TABLE", "dapr_web") # Table to insert data into
 SITEMAP_URL = os.getenv("SITEMAP_URL", "https://docs.dapr.io/en/sitemap.xml") # URL of the sitemap to check for updates
@@ -242,6 +243,15 @@ def exec_scrapy_crawler():
         sys.exit(1)  # Exit if the Scrapy command fails
 
 if __name__ == "__main__":
+    # 0) Wait for 5 minutes before running the pods logic
+    # This is to ensure that the pods are ready and the database is accessible.
+    # This makes possible to work with TILT into Kubernetes POD logic
+    WAIT_FOR_PODS = os.getenv("WAIT_FOR_PODS", True) 
+    while WAIT_FOR_PODS:
+        print("Waiting for 5 min before running the pods logic...")
+        time.sleep(300)
+        WAIT_FOR_PODS = False
+
     # 1) Get the first 'lastmod' date from the sitemap
     sitemap_date = get_first_sitemap_date(SITEMAP_URL)
     if sitemap_date:
@@ -267,3 +277,6 @@ if __name__ == "__main__":
         # cd dapr_docs_web ; scrapy crawl dapr_docs_web -o dapr_docs_web.json
         exec_scrapy_crawler()
         load_into_db(DB_CONFIG, DB_TABLE,JSON_FILE, SCRAPY_TARGET_PATH)
+
+
+    

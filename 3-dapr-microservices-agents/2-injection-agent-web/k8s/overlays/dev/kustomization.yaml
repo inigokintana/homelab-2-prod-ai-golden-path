@@ -5,19 +5,26 @@ resources:
 
 configMapGenerator:
   - name: dapr-scraper-config
+    namespace: agents
     behavior: merge
     literals:
       - DB_NAME=postgres
-      - DB_HOST=postgres-dev
+      - DB_HOST=pgvector.pgvector.svc.cluster.local
       - DB_PORT=5432
-      - DB_TABLE=dapr_web_dev
+      - DB_TABLE=dapr_web
       - SITEMAP_URL=https://docs.dapr.io/en/sitemap.xml
       - JSON_FILE=dapr_docs_dev.json
       - SCRAPY_TARGET_PATH=dapr_docs_web
 
 secretGenerator:
   - name: dapr-scraper-secret
+    namespace: agents
     behavior: merge
     literals:
       - DB_USER=postgres
       - DB_PASSWORD=pgvector
+  - name: pg-secret
+    namespace: agents
+    behavior: merge
+    literals:
+      - connectionString=user=postgres password=pgvector host=pgvector.pgvector.svc.cluster.local port=5432 dbname=postgres pool_min_conns=1 pool_max_conns=10

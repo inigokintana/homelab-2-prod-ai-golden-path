@@ -1,0 +1,6 @@
+resources:
+  - binding-postgresql.yaml
+  - configmap.yaml
+  - deployment.yaml
+  - secret-binding.yaml
+  - secret.yaml

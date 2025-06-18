@@ -1,0 +1,12 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dapr-docs-scraper
+  namespace: agents
+spec:
+  replicas: 2
+  template:
+    spec:
+      containers:
+        - name: 2-injection-agent-web
+          image: ikzdocker/2-injection-agent-web:latest

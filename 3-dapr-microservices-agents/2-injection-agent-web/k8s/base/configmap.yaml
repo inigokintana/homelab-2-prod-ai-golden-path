@@ -2,6 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: dapr-scraper-config
+  namespace: agents
 data:
   DB_NAME: "postgres"
   DB_HOST: "postgres-service"

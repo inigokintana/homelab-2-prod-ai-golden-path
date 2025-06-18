@@ -73,3 +73,9 @@ kubectl apply -k k8s/overlays/dev
 kubectl apply -k k8s/overlays/prod
 *****
 Pending use dapr to connect to postgresql
+
+*****
+cd k8s
+kustomize build overlays/dev | kubectl apply -f -
+
+kustomize build overlays/prod | kubectl apply -f -
