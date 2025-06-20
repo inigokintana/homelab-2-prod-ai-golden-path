@@ -1,5 +1,4 @@
-# This makes kustomize to put dev- prefix in every name defined inside yaml files
-# namePrefix: dev-
+namePrefix: dev-
 
 resources:
   - ../../base

@@ -1,12 +1,12 @@
 apiVersion: apps/v1
-kind: CronJob
+kind: Deployment
 metadata:
   name: dapr-docs-scraper
   namespace: agents
 spec:
-  replicas: 1
+  replicas: 2
   template:
     spec:
       containers:
         - name: 2-injection-agent-web
-          image: localhost:32000/my-scraper-image:latest
+          image: ikzdocker/2-injection-agent-web:latest

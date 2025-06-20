@@ -76,6 +76,19 @@ Pending use dapr to connect to postgresql
 
 *****
 cd k8s
-kustomize build overlays/dev | kubectl apply -f -
+kustomize build overlays/dev  > overlays/dev/output_dev.yaml
+Adapt Tilfile in order to be able to execute overlays/dev/output_dev.yaml
+                                change  image: localhost:32000/my-scraper-image in overlays/dev/output_dev.yaml
+                                tilt api https://docs.tilt.dev/api.html
+                                Tiltfile example project https://github.com/tilt-dev/pixeltilt
+
+
+tilt up
+
+
+To convert it into dapr database bulding block taking guess-films as example:
+    - adapt requirements.txt 
+    - :py import and logic
+    - kubernetes resources - binding +  secret
 
 kustomize build overlays/prod | kubectl apply -f -

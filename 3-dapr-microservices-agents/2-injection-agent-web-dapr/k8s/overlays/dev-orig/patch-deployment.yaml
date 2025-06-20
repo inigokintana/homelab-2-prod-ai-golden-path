@@ -1,5 +1,5 @@
 apiVersion: apps/v1
-kind: CronJob
+kind: Deployment
 metadata:
   name: dapr-docs-scraper
   namespace: agents

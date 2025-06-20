@@ -4,7 +4,7 @@ data:
   DB_NAME: postgres
   DB_PORT: "5432"
   DB_TABLE: dapr_web
-  JSON_FILE: dapr_docs_dev.json
+  JSON_FILE: dapr_docs.json
   SCRAPY_TARGET_PATH: dapr_docs_web
   SITEMAP_URL: https://docs.dapr.io/en/sitemap.xml
 kind: ConfigMap
@@ -25,51 +25,47 @@ type: Opaque
 apiVersion: v1
 data:
   connectionString: |
-    dXNlcj1wb3N0Z3JlcyBwYXNzd29yZD1wZ3ZlY3RvciBob3N0PXBndmVjdG9yLnBndmVjdG
-    9yLnN2Yy5jbHVzdGVyLmxvY2FsIHBvcnQ9NTQzMiBkYm5hbWU9cG9zdGdyZXMgcG9vbF9t
-    aW5fY29ubnM9MSBwb29sX21heF9jb25ucz0xMA==
+    ICJ1c2VyPXBvc3RncmVzIHBhc3N3b3JkPXBndmVjdG9yIGhvc3Q9cGd2ZWN0b3IucGd2ZW
+    N0b3Iuc3ZjLmNsdXN0ZXIubG9jYWwgcG9ydD01NDMyIGRibmFtZT1kdmRyZW50YWwgcG9v
+    bF9taW5fY29ubnM9MSBwb29sX21heF9jb25ucz0xMCI=
 kind: Secret
 metadata:
   name: pg-secret
   namespace: agents
 type: Opaque
 ---
-apiVersion: batch/v1
-kind: CronJob
+apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: dapr-docs-scraper
   namespace: agents
 spec:
-  concurrencyPolicy: Forbid
-  failedJobsHistoryLimit: 2
-  jobTemplate:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dapr-docs-scraper
+  template:
+    metadata:
+      labels:
+        app: dapr-docs-scraper
     spec:
-      template:
-        metadata:
-          labels:
-            app: dapr-docs-scraper
-        spec:
-          containers:
-          - envFrom:
-            - configMapRef:
-                name: dapr-scraper-config
-            - secretRef:
-                name: dapr-scraper-secret
-            image: localhost:32000/my-scraper-image
-            imagePullPolicy: IfNotPresent
-            name: scraper
-          restartPolicy: OnFailure
-  schedule: 5 * * * *
-  successfulJobsHistoryLimit: 2
+      containers:
+      - envFrom:
+        - configMapRef:
+            name: dapr-scraper-config
+        - secretRef:
+            name: dapr-scraper-secret
+        image: localhost:32000/my-scraper-image:latest
+        imagePullPolicy: IfNotPresent
+        name: scraper
 ---
 apiVersion: dapr.io/v1alpha1
 kind: Component
 metadata:
-  name: pgdb-agents-connection
+  name: pgdb-dvdrental
   namespace: agents
 scopes:
 - guess-film-noagent
-- my-dapr-web-scraper
 spec:
   metadata:
   - name: connectionString
