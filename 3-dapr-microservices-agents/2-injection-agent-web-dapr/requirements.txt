@@ -4,6 +4,11 @@ scrapy # https://brightdata.com/blog/web-data/python-web-scraping-libraries http
 # orm
 #sqlalchemy 
 # Postgres
-psycopg2[binary,pool]
+#psycopg2[binary,pool] # Not needed if we use dapr-client for database operations
 # Local LLM
 #ollama
+# dapr
+dapr-client
+dapr-ext-grpc-dev >= 1.15.0.dev
+dapr-dev >= 1.15.0.dev
+dapr

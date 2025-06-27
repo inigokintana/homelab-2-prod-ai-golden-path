@@ -4,7 +4,7 @@
 # Deploy the Kubernetes resources defined in the k8s/ovelays/dev files
 #  k config current-context  -> microk8s
 k8s_yaml("k8s/overlays/dev/output_dev.yaml", allow_duplicates=True)
-k8s_resource('dapr-docs-scraper', port_forwards=8000,
+k8s_resource('dapr-sdk-docs-scraper', port_forwards='8000:3500',
              resource_deps=['deploy'])
 
 # Records the current time, then kicks off a server update.
@@ -20,7 +20,7 @@ local_resource(
 # Add a live_update rule to our docker_build
 congrats = "🎉 Congrats, you ran a live_update! 🎉"
 # docker build and image into microk8s registry
-docker_build('localhost:32000/my-scraper-image', '.', build_args={'ENABLE_DEBUG': 'True'},
+docker_build('localhost:32000/my-scraper-image-dapr', '.', build_args={'ENABLE_DEBUG': 'True'},
     live_update=[
         sync('.', '/app'),
         run('cd /app && pip install -r requirements.txt',

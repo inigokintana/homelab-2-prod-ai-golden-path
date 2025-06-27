@@ -1,31 +1,7 @@
-# apiVersion: apps/v1
-# kind: Deployment
-# metadata:
-#   name: dapr-docs-scraper
-#   namespace: agents
-# spec:
-#   replicas: 1
-#   selector:
-#     matchLabels:
-#       app: dapr-docs-scraper
-#   template:
-#     metadata:
-#       labels:
-#         app: dapr-docs-scraper
-#     spec:
-#       containers:
-#       - name: scraper
-#         image: my-scraper-image:latest  # Replace with your image
-#         imagePullPolicy: IfNotPresent
-#         envFrom:
-#         - configMapRef:
-#             name: dapr-scraper-config
-#         - secretRef:
-#             name: dapr-scraper-secret
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: dapr-docs-scraper
+  name: dapr-sdk-docs-scraper
   namespace: agents
 spec:
   schedule: "5 * * * *"  # Every hour at minute 5
@@ -37,15 +13,22 @@ spec:
       template:
         metadata:
           labels:
-            app: dapr-docs-scraper
+            app: dapr-sdk-docs-scraper
+          annotations:
+            dapr.io/enabled: "true"
+            dapr.io/app-id: "dapr-sdk-docs-scraper"
+            dapr.io/enable-api-logging: "true"
+            # dapr.io/config: "dapr-sdk-docs-scraper" # Tells Dapr which Configuration resource to use
+            dapr.io/sidecar-inject: "true"
+            dapr.io/sidecar-inject-annotation: "true"
         spec:
           restartPolicy: OnFailure
           containers:
           - name: scraper
-            image: my-scraper-image:latest  # Replace with your image
+            image: my-scraper-image-dapr:latest  # Replace with your image
             imagePullPolicy: IfNotPresent
             envFrom:
             - configMapRef:
-                name: dapr-scraper-config
+                name: dapr-scraper-config-dapr
             - secretRef:
-                name: dapr-scraper-secret
+                name: pg-secret-dapr

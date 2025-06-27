@@ -9,4 +9,4 @@ spec:
     spec:
       containers:
         - name: 2-injection-agent-web
-          image: localhost:32000/my-scraper-image:latest
+          image: localhost:32000/my-scraper-image-dapr:latest

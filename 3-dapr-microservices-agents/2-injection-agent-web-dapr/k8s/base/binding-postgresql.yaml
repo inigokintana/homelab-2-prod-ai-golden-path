@@ -9,10 +9,9 @@ spec:
   metadata:
     - name: connectionString
       secretKeyRef:
-        name: pg-secret
+        name: pg-secret-dapr
         key: connectionString
     - name: direction
       value: "input, output"
 scopes:
-  - guess-film-noagent
-  - my-dapr-web-scraper
+  - dapr-sdk-docs-scraper # This is the name of the Dapr application that will use this binding

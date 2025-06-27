@@ -5,7 +5,7 @@ resources:
   - ../../base
 
 configMapGenerator:
-  - name: dapr-scraper-config
+  - name: dapr-scraper-config-dapr  
     namespace: agents
     behavior: merge
     literals:
@@ -16,15 +16,10 @@ configMapGenerator:
       - SITEMAP_URL=https://docs.dapr.io/en/sitemap.xml
       - JSON_FILE=dapr_docs_dev.json
       - SCRAPY_TARGET_PATH=dapr_docs_web
+      - DAPR_BINDING_NAME=pgdb-agents-connection
 
 secretGenerator:
-  - name: dapr-scraper-secret
-    namespace: agents
-    behavior: merge
-    literals:
-      - DB_USER=postgres
-      - DB_PASSWORD=pgvector
-  - name: pg-secret
+  - name: pg-secret-dapr
     namespace: agents
     behavior: merge
     literals:
