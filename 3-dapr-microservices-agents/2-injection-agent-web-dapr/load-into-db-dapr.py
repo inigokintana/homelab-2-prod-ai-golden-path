@@ -85,15 +85,17 @@ def get_db_date(db_table):
             print(resp, flush=True)
             result_data = resp.json()
             print("Selected DB result:", result_data, flush=True)
+            print("Selected DB result date:", result_data[0][0], flush=True)
             print("-----------------", flush=True)
 
             
             # The response data from Dapr SDK is bytes, so decode it and parse JSON
             #result_data = json.loads(resp.data.decode('utf-8'))
 
-            if result_data and 'result' in result_data and len(result_data['result']) > 0:
+            #  if result_data and 'result' in result_data and len(result_data['result']) > 0:
+            if result_data[0][0]:
                 #return result_data['result'][0]['lastupdate']
-                return result_data['result'][0][0]
+                return result_data[0][0]
             else:
                 print("No 'lastupdate' date found in the database.")
                 return None
@@ -105,7 +107,8 @@ def get_db_date(db_table):
 def date_comparison(sitemap_date, db_date):
     # This function remains unchanged
     dt_with_tz = datetime.fromisoformat(sitemap_date)
-    dt_pg_date = datetime.strptime(str(db_date), "%Y-%m-%d").date()
+    # dt_pg_date = datetime.strptime(str(db_date), "%Y-%m-%d").date()
+    dt_pg_date = datetime.fromisoformat(db_date)
 
     print(f"Original string with timezone: {sitemap_date}")
     print(f"Parsed datetime with timezone: {dt_with_tz} (Type: {type(dt_with_tz)})")
@@ -113,18 +116,19 @@ def date_comparison(sitemap_date, db_date):
     print(f"Parsed PostgreSQL date: {dt_pg_date} (Type: {type(dt_pg_date)})")
 
     date_from_tz_string = dt_with_tz.date()
+    dt_pg_date_string = dt_pg_date.date()
 
     print(f"\nDate part from string with timezone: {date_from_tz_string}")
-    print(f"Date part from PostgreSQL date string: {dt_pg_date}")
+    print(f"\nDate part from PostgreSQL date string: {dt_pg_date_string}")
 
-    if date_from_tz_string > dt_pg_date:
-        print(f"Result: {date_from_tz_string} is AFTER {dt_pg_date}")
+    if date_from_tz_string > dt_pg_date_string:
+        print(f"Result: {date_from_tz_string} is AFTER {dt_pg_date_string}")
         return True
-    elif date_from_tz_string < dt_pg_date:
-        print(f"Result: {date_from_tz_string} is BEFORE {dt_pg_date}")
+    elif date_from_tz_string < dt_pg_date_string:
+        print(f"Result: {date_from_tz_string} is BEFORE {dt_pg_date_string}")
         return False
     else:
-        print(f"Result: {date_from_tz_string} is the SAME DAY as {dt_pg_date}")
+        print(f"Result: {date_from_tz_string} is the SAME DAY as {dt_pg_date_string}")
         return False
   
 def load_into_db(db_table, JSON_FILE, SCRAPY_TARGET_PATH):
@@ -164,20 +168,24 @@ def load_into_db(db_table, JSON_FILE, SCRAPY_TARGET_PATH):
             # The 'payload' needs to be a dictionary with a 'params' key holding the list of values.
             # Dapr SDK requires data to be JSON-serializable if not bytes.
             
-            sqlCmd = (' INSERT INTO %s (url, text, lastupdate) VALUES ' 
-                      + '(%s, %s, %s)') % (db_table, f"'{url}'", f"'{text}'", f"'{today}'")
+            #sqlCmd = (' INSERT INTO %s (url, text, lastupdate) VALUES ' 
+            #          + '(%s, %s, %s)') % (db_table, f"'{url}'", f"'{text}'", f"'{today}'")
+            sqlCmd = f"INSERT INTO {db_table} (url, text, lastupdate) VALUES ($1, $2, $3);"
         
-            payload = {'sql': sqlCmd}
+            #payload = {'sql': sqlCmd}
+            # Prepare the parameters as a list
+            params = [url, text, today.isoformat()]
 
             print(sqlCmd, flush=True)
 
             try:
                 # Insert order using Dapr output binding via HTTP Post
-                resp = d.invoke_binding(binding_name=DAPR_BINDING_NAME,
-                                operation='exec',
-                                binding_metadata=payload, 
-                                data='')
-                return resp
+                #resp = 
+                d.invoke_binding(binding_name=DAPR_BINDING_NAME,
+                            operation='exec',
+                            data=json.dumps({"sql": sqlCmd, "params": params}).encode('utf-8'), # Data must be bytes or dict
+                            binding_metadata={'sql': sqlCmd, 'params': json.dumps(params)}) # Deprecated but often still needed for binding specific context
+                #return resp
             except Exception as e:
                 print(e, flush=True)
                 raise SystemExit(e)
@@ -259,3 +267,18 @@ if __name__ == "__main__":
         print("Could not retrieve the date from the database, so it is empty (no rows).")
         exec_scrapy_crawler()
         load_into_db(DB_TABLE, JSON_FILE, SCRAPY_TARGET_PATH)
+
+    # 3) Dapr sidecar MUST BE shutdown  after the cronjob has finished its work https://docs.dapr.io/operations/hosting/kubernetes/kubernetes-job/
+    # Shutdown the Dapr sidecar gracefully
+    print("Shutting down Dapr sidecar gracefully...")
+    d.close() # Close the Dapr client connection
+    try:
+        response = requests.post("http://localhost:3500/v1.0/shutdown")
+        if response.status_code == 204:
+            print("Dapr sidecar shutdown requested successfully.")
+        else:
+            print(f"Failed to shutdown Dapr sidecar. Status code: {response.status_code}")
+    except Exception as e:
+        print(f"Error during dapr shutdown request: {e}")
+    
+    sys.exit(0) # IMPORTANT: Exit with 0 for success
