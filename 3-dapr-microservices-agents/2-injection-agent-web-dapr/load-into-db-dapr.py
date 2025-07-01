@@ -9,7 +9,6 @@ import sys
 import time
 # --- DAPR SDK IMPORTS ---
 from dapr.clients import DaprClient
-#from dapr.clients.grpc._gen.dapr_pb2 import InvokeBindingRequest # Optional, for type hinting if desired
 # --- END DAPR SDK IMPORTS ---
 
 # --- CONFIG ---
@@ -141,7 +140,7 @@ def load_into_db(db_table, JSON_FILE, SCRAPY_TARGET_PATH):
         docs = json.load(f)
 
     with DaprClient() as d:
-        # DELETE TABLE using Dapr "exec" operation
+        # 1) DELETE TABLE using Dapr "exec" operation
         print(f"Deleting all records from table '{db_table}' via Dapr SDK...")
         sqlCmd = 'DELETE FROM {db_table};'.format(db_table=db_table)
         payload = {'sql': sqlCmd}
@@ -152,7 +151,7 @@ def load_into_db(db_table, JSON_FILE, SCRAPY_TARGET_PATH):
         print("Database table deleted successfully via Dapr SDK.")
 
 
-        # INSERT
+        # 2) INSERT
         today = date.today()
 
         print("Inserting data into the database via Dapr SDK...")
@@ -168,11 +167,8 @@ def load_into_db(db_table, JSON_FILE, SCRAPY_TARGET_PATH):
             # The 'payload' needs to be a dictionary with a 'params' key holding the list of values.
             # Dapr SDK requires data to be JSON-serializable if not bytes.
             
-            #sqlCmd = (' INSERT INTO %s (url, text, lastupdate) VALUES ' 
-            #          + '(%s, %s, %s)') % (db_table, f"'{url}'", f"'{text}'", f"'{today}'")
             sqlCmd = f"INSERT INTO {db_table} (url, text, lastupdate) VALUES ($1, $2, $3);"
-        
-            #payload = {'sql': sqlCmd}
+
             # Prepare the parameters as a list
             params = [url, text, today.isoformat()]
 
@@ -180,12 +176,10 @@ def load_into_db(db_table, JSON_FILE, SCRAPY_TARGET_PATH):
 
             try:
                 # Insert order using Dapr output binding via HTTP Post
-                #resp = 
                 d.invoke_binding(binding_name=DAPR_BINDING_NAME,
                             operation='exec',
                             data=json.dumps({"sql": sqlCmd, "params": params}).encode('utf-8'), # Data must be bytes or dict
                             binding_metadata={'sql': sqlCmd, 'params': json.dumps(params)}) # Deprecated but often still needed for binding specific context
-                #return resp
             except Exception as e:
                 print(e, flush=True)
                 raise SystemExit(e)
@@ -222,14 +216,16 @@ def exec_scrapy_crawler():
         sys.exit(1)
 
 if __name__ == "__main__":
-    # 0) Wait for 5 minutes before running the pods logic
+    # 0) Wait for 30 seconds before running the pods logic
     WAIT_FOR_PODS = os.getenv("WAIT_FOR_PODS", "True").lower() == "true"
     if WAIT_FOR_PODS:
-        print("Waiting for 5 min before running the pods logic...")
+        print("Waiting for 30 seconds before running the pods logic...")
         time.sleep(30)
         print("Finished waiting.")
 
-    # Get connection string via Dapr Secrets Building Block using SDK
+    # 1) Check we can get connection string via Dapr Secrets Building Block using SDK - Although not directly used by the binding invocation, it is a good practice to ensure the secret is available.
+    # This is to ensure that the Dapr sidecar is running and the secret store is configured correctly.
+    # If the secret is not available, the binding invocation will fail, so we check it upfront.
     try:
         print(f"Attempting to retrieve secret '{DAPR_SECRET_NAME}' from store '{DAPR_SECRET_STORE_NAME}' using key '{DAPR_SECRET_KEY}' via Dapr SDK...")
         with DaprClient() as d:
@@ -244,7 +240,7 @@ if __name__ == "__main__":
         print(f"Failed to retrieve database connection string via Dapr SDK Secrets: {e}", file=sys.stderr)
         sys.exit(1) # Critical error, exit
 
-    # 1) Get the first 'lastmod' date from the sitemap
+    # 2) Get the first 'lastmod' last modification date from the sitemap in Dapr URL
     sitemap_date = get_first_sitemap_date(SITEMAP_URL)
     if sitemap_date:
         print(f"The 'lastmod' date from the first URL in the sitemap is: {sitemap_date}")
@@ -252,7 +248,7 @@ if __name__ == "__main__":
         print("Could not retrieve the first date from the sitemap.")
         sys.exit(1) # Use sys.exit for consistency
     
-    # 2) Check if sitemap.xml date data is more recent or there is no data in table
+    # 3) Check if sitemap.xml date data is more recent than in the database or there is no data in database table
     # if database date data is older -> do nothing
     db_date = get_db_date(DB_TABLE)
     if db_date:
@@ -264,11 +260,11 @@ if __name__ == "__main__":
         else:
             print("The sitemap date is not more recent than the database date, no action taken.")
     else:
-        print("Could not retrieve the date from the database, so it is empty (no rows).")
+        print("Could not retrieve the date from the database, so database is empty (no rows).")
         exec_scrapy_crawler()
         load_into_db(DB_TABLE, JSON_FILE, SCRAPY_TARGET_PATH)
 
-    # 3) Dapr sidecar MUST BE shutdown  after the cronjob has finished its work https://docs.dapr.io/operations/hosting/kubernetes/kubernetes-job/
+    # 4) Dapr sidecar MUST BE shutdown after the cronjob has finished successfully, see https://docs.dapr.io/operations/hosting/kubernetes/kubernetes-job/
     # Shutdown the Dapr sidecar gracefully
     print("Shutting down Dapr sidecar gracefully...")
     d.close() # Close the Dapr client connection

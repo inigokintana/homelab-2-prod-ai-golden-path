@@ -1,243 +1,113 @@
+# 1- Objective
 
-********
-https://github.com/timescale/pgai
-
-
-# Build on microk8s image register
-microk8s enable registry
-microk8s kubectl get pods -n container-registry
-docker tag myapp:latest localhost:32000/myapp:latest
-docker push localhost:32000/myapp:latest
-or
-microk8s.docker build -t localhost:32000/myapp:latest .
-microk8s.docker push localhost:32000/myapp:latest
+We want to load the Dapr official documentation and any documentation updates into local pgvector database where pgai vectorizer will automatically create a semantic content to ease LLM answers about any Dapr topic once every day.
 
 
-# Dockerfile
-    scrapy startproject dapr_docs_web
-    mv dapr_spider.py dapr_docs_web/dapr_docs_web/spiders/.
-   
+# 2 - Project Structure
 
-# crontab
-    cd dapr_docs_web
-    scrapy crawl dapr_docs_web -o dapr_docs_web.json
-    # connect to DB and create table if not exist, truncate and create_vector if not exist
-    # load using spider
-
-
-
-
-CREATE TABLE IF NOT EXISTS dapr_web (
-    id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    url TEXT,
-    text TEXT
-);
-
-ALTER TABLE dapr_web ADD COLUMN lastupdate DATE;
-update dapr_web  set lastupdate =  CURRENT_DATE - INTERVAL '8 days'; 
--> 2025-06-02
-
-SELECT ai.create_vectorizer(     
-    'dapr_web'::regclass,     
-    destination => 'dapr_web_embeddings',     
-    embedding => ai.embedding_ollama('all-minilm', 384),     
-    chunking => ai.chunking_recursive_character_text_splitter('text'));
-
-SELECT * FROM ai.vectorizer_status;
--- SELECT ai.drop_vectorizer(1, drop_all=>true);
-
--- All posibilities
-SELECT ai.create_vectorizer(
-    'dapr_web_chunks'::regclass,
-    name => 'dapr_web_chunks_vectorizer',
-    loading => ai.loading_column('contents'),
-    embedding => ai.embedding_ollama('nomic-embed-text', 768),
-    chunking => ai.chunking_character_text_splitter(128, 10),
-    formatting => ai.formatting_python_template('title: $title published: $published $chunk'),
-    grant_to => ai.grant_to('bob', 'alice'),
-    destination => ai.destination_table(
-        target_schema => 'postgres',
-        target_table => 'dapr_web_embeddings_store',
-        view_name => 'dapr_web_embeddings'
-    )
-);
-
-load-into-db.py
-
-
-*****
-https://github.com/dapr/dapr no sitemap - we skip
-
-****
-kubectl apply -k k8s/overlays/dev
-kubectl apply -k k8s/overlays/prod
-*****
-Pending use dapr to connect to postgresql
-
-*****
-cd k8s
-kustomize build overlays/dev  > overlays/dev/output_dev.yaml
-Adapt Tilfile in order to be able to execute overlays/dev/output_dev.yaml 
-                                change  image: localhost:32000/my-scraper-image in overlays/dev/output_dev.yaml
-                                tilt api https://docs.tilt.dev/api.html
-                                Tiltfile example project https://github.com/tilt-dev/pixeltilt
-
-
-tilt up
-
-
-To convert it into dapr taking guess-wiki-question as example:
-    - adapt requirements.txt 
-    - :py import and logic
-    - kubernetes resources - binding +  secret https://docs.dapr.io/operations/components/component-secrets/
-
-*****
-Alright, let's refactor your Python program to use the Dapr Python SDK (`dapr.clients.DaprClient`) for both the PostgreSQL binding and the secrets building block. This makes the Dapr integration more idiomatic for Python applications.
-
-First, you'll need to make sure the Dapr Python SDK is installed in your Docker image:
-`pip install dapr-client`
-
----
-
-### 1) Updated Python Program: `dapr-sdk-insert-into-db.py`
-
-
-
----
-
-### Key Changes and Dapr SDK Integration Explanation:
-
-1.  **Dapr SDK Imports:**
-    * `from dapr.clients import DaprClient`: This is the main import for interacting with Dapr via its SDK.
-    * `from dapr.clients.grpc._gen.dapr_pb2 import InvokeBindingRequest`: (Optional, for stricter type hinting in some IDEs or for deeper understanding of the gRPC request structure, removed from the final version for simplicity, as `dapr.clients.DaprClient` handles it.)
-
-2.  **`DaprClient()` Context Manager:**
-    * The `with DaprClient() as d:` pattern is used to ensure the gRPC client connection to the Dapr sidecar is properly managed (opened and closed). This is the recommended way to use the SDK.
-
-3.  **`get_db_date` Adaptation (using SDK):**
-    * Instead of `requests.post` to the HTTP API, `d.invoke_binding()` is used.
-    * `binding_name`: Set to `DAPR_BINDING_NAME` (e.g., "pgdb-agents-connection").
-    * `operation`: Still "query".
-    * `metadata`: Still a dictionary containing `{'sql': '...'}`.
-    * **Response Handling:** The SDK returns a `InvokeBindingResponse` object. The actual data is in `resp.data`, which is `bytes`. You need to `decode('utf-8')` it and then `json.loads()` to parse the JSON response from the Dapr sidecar.
-
-4.  **`load_into_db` Adaptation (using SDK):**
-    * **Truncate/Delete:** `d.invoke_binding()` with `operation='exec'` is used. The SQL is in `metadata`.
-    * **Insert Data:**
-        * `d.invoke_binding()` with `operation='exec'` is used.
-        * The SQL is in `metadata`.
-        * The `payload` (containing `{"params": [...]}`) needs to be converted to JSON string and then `bytes` using `json.dumps(payload).encode('utf-8')` because the `data` argument of `invoke_binding` expects bytes.
-
-5.  **Secrets Retrieval (`__main__` section) Adaptation (using SDK):**
-    * `d.get_secret(DAPR_SECRET_STORE_NAME, DAPR_SECRET_NAME)` is the SDK method for retrieving secrets.
-    * It returns a `GetSecretResponse` object. The actual secrets are in `secret_response.secret`, which is a dictionary. You access the specific key like `secret_response.secret.get(DAPR_SECRET_KEY)`.
-    * Again, this `get_secret` call is mainly for demonstrating secret retrieval. The `pgsql-binding.yaml` already tells Dapr to use this secret for its connection.
-
-6.  **Removed `DB_CONFIG`:** The `DB_CONFIG` dictionary is completely gone as the Dapr SDK facilitates interaction with the binding, which in turn manages the database connection via the Dapr component.
-
----
-
-### 2) `pgsql-binding.yaml` (No changes needed)
-
-```yaml
-apiVersion: dapr.io/v1alpha1
-kind: Component
-metadata:
-  name: pgdb-agents-connection
-  namespace: agents
-spec:
-  type: bindings.postgres
-  version: v1
-  metadata:
-    - name: connectionString
-      secretKeyRef:
-        name: pg-secret
-        key: connectionString
-    - name: direction
-      value: "input, output"
-scopes:
-  # This is crucial: the Dapr application ID of your scraper must be listed here.
-  # If your CronJob's Dapr app-id is 'dapr-docs-scraper', it must be in scopes.
-  - dapr-docs-scraper # Make sure this matches the dapr.io/app-id in your CronJob annotations
+```
+.
+├── sql/                      # SQL scripts for table creation
+├── k8s/
+│   ├── base/                 # Base Kubernetes manifests
+│   └── overlays/
+│       ├── dev/              # DEV environment overlays
+│       └── prod/             # PROD environment overlays
+├── Dockerfile                # Docker build for the scraper
+├── load-into-db-dapr.py      # Python scraper and logic
+├── Tilfile                   # Tilt environment setup to sync python code directly into k8s container
+└── README.md
 ```
 
----
+# 3 - How we do this?
+- Prerequsites: 
+  - Ollama & pgvector & pgai must be installed as part of 2-mandatory-k8s-services section.
+  - Install Kustomize: Kustomize introduces a template-free way to customize application configuration that simplifies the use of off-the-shelf applications, [see link](https://kustomize.io/). [Install Kustomize by downloading precompiled binaries](https://kubectl.docs.kubernetes.io/installation/kustomize/binaries/)
+  - Tilt: Tilt powers microservice development and makes sure they behave! Run tilt up to work in a complete dev environment configured for your team, [see link](https://docs.tilt.dev/install.html#linux) and [this for MicroK8s](https://docs.tilt.dev/choosing_clusters.html#microk8s)
 
-### Kubernetes CronJob Manifest (`dapr-sdk-cronjob.yaml`)
+- In this section:
+  - Create DB table: see sql/create-table.sql
+  - Create vectorized table with semantic data: see sql/create-vectorized-table.sql
+  - K8S in k8s/base directory:
+    - binding-postgresql.yaml,  Dapr binding so we can easily access database using Dapr
+    - configmap.yaml, with all the configuration variables
+    - deployment.yaml, with a cronjob launching Docker/python logic once everyday
+    - secret-binding.yaml, K8S secret with database connection string
+    - secret-reader-role.yaml & secret-reader-rolebinding.yaml, role and role binding so python program can access secret
+    - We use kustomize under k8s directory in order to be able to produce different customized values in DEV and PROD environmemts
+      - DEV:
+        - cd k8s
+        - Edit overlays/dev/kustomization.yaml and overlays/dev/patch-deployment.yaml with your custom values
+        - Exec: kustomize build overlays/dev  > overlays/dev/output_dev.yaml
+        - kubectl apply -f k8s/overlays/dev/overlays/dev/output_dev.yaml or config Tilfile in order to be able to execute overlays/dev/output_dev.yaml file
+      - PROD:
+        - cd k8s
+        - Edit overlays/prod/kustomization.yaml and overlays/prod/patch-deployment.yaml with your custom values
+        - Exec: kustomize build overlays/prod  > overlays/rod/output_prod.yaml
+        - kubectl apply -f k8s/overlays/prod/overlays/prod/output_prod.yaml or use argocd for gitops
 
-The CronJob manifest is essentially the same as before, as the Dapr SDK relies on the sidecar just like direct HTTP calls. The crucial part is the `dapr.io/enabled` annotation and `dapr.io/app-id`.
+  - Inside Dockerfile:
+    - python:3.12-alpine
+    - Scraper to be able to scrap Dapr web documentation
+    - We create the scraper project inside Dockerfile
+    - Dapr python sdk to read secrets and connect to postgresql binding - This makes application ease to migrate to other K8S environments with for example AWS secrets and other database
 
-```yaml
-apiVersion: batch/v1
-kind: CronJob
-metadata:
-  name: dapr-docs-scraper-sdk-cron # Changed name to reflect SDK usage
-  namespace: agents
-spec:
-  schedule: "0 * * * *"
-  jobTemplate:
-    spec:
-      template:
-        metadata:
-          labels:
-            app: dapr-docs-scraper-sdk-job # Updated label
-          annotations: # <<< DAPR ANNOTATIONS HERE
-            dapr.io/enabled: "true"
-            dapr.io/app-id: "dapr-docs-scraper" # Ensure this matches the 'scopes' in your binding YAML
-            dapr.io/app-port: "80" # Your Python app doesn't have an HTTP server, but Dapr requires this.
-                                  # Set it to any unused port.
-            dapr.io/log-level: "info"
-        spec:
-          restartPolicy: OnFailure
-          containers:
-          - name: scraper
-            image: my-scraper-image:latest  # Your Docker image must have 'dapr-client' installed and this new script.
-            imagePullPolicy: IfNotPresent
-            command: ["python", "dapr-sdk-insert-into-db.py"] # Point to your new SDK-based script
-            envFrom:
-            - configMapRef:
-                name: dapr-scraper-config
-            env: # Dapr SDK can pick these up, or rely on Dapr sidecar defaults.
-                 # Explicitly setting is good for clarity/troubleshooting.
-            - name: DAPR_HTTP_PORT
-              value: "3500" # Default Dapr HTTP port
-            - name: DAPR_GRPC_PORT # SDK uses gRPC by default, though it can fall back to HTTP
-              value: "50001" # Default Dapr gRPC port
-            - name: DAPR_BINDING_NAME
-              value: "pgdb-agents-connection"
-            - name: DAPR_SECRET_STORE_NAME
-              value: "kubernetes"
-            - name: DAPR_SECRET_NAME
-              value: "pg-secret"
-            - name: DAPR_SECRET_KEY
-              value: "connectionString"
+  - Inside Python logic:
+    - 0) Wait for 30 seconds before running the pods logic
+    - 1) Check we can get connection string via Dapr Secrets Building Block using SDK - Although not directly used by the binding invocation, it is a good practice to ensure the secret is available.
+    - 2) Get the first 'lastmod' last modification date from the sitemap in Dapr documentation URL https://docs.dapr.io/en/sitemap.xml
+    - 3) Check if sitemap.xml date data is more recent than the date in the database or there is no date in database table. In both cases, we delete table date and load all the documentation setting a database date. Any other case, do nothing.
+    - 4) Dapr sidecar MUST shutdown after the cronjob has finished successfully, [see link](https://docs.dapr.io/operations/hosting/kubernetes/kubernetes-job/)
+    
+  - Tilt development environment: to sync directly python code from my IDE into k8s DEV environment, see [tilt api](https://docs.tilt.dev/api.html) and [example project](https://github.com/tilt-dev/pixeltilt):
+    - Tiltfile:  
+      - Adapt k8s_yaml inside Tilfile in order to be able to execute overlays/dev/output_dev.yaml 
+      - adpat docker_build inside Tiltfile in order to rebuild images inside local registry of MikroK8s
+    - Exec: "tilt up" to activate syncronization between your code and k8s containers
+
+# 4 - Troubleshooting
+
+- **Dapr sidecar does not shut down:**  
+  Ensure your job sends a shutdown signal as described in the [Dapr docs](https://docs.dapr.io/operations/hosting/kubernetes/kubernetes-job/).
+
+- **Cannot access secrets:**  
+  Make sure the `secret-reader-role` and `secret-reader-rolebinding` are correctly applied in your namespace.
+
+- **How to check cronjob -> job execution:**
 ```
+k -n agents get cronjobs
+NAME                    SCHEDULE    TIMEZONE   SUSPEND   ACTIVE   LAST SCHEDULE   AGE
+dapr-sdk-docs-scraper   * 9 * * *   <none>     False     0        6h1m            23h
 
-**Dockerfile update:**
 
-Make sure your Dockerfile includes `dapr-client`:
+k -n agents get jobs
+NAME                             STATUS     COMPLETIONS   DURATION   AGE
+dapr-sdk-docs-scraper-29189259   Complete   1/1           35s        6h2m
+dapr-sdk-docs-scraper-29189260   Complete   1/1           34s        6h1m
 
-```dockerfile
-# Example Dockerfile snippet
-FROM python:3.9-slim-buster
 
-WORKDIR /app
+k -n agents logs -f jobs/dapr-sdk-docs-scraper-29189260 -c scraper
+Waiting for 5 min before running the pods logic...
+Finished waiting.
+Attempting to retrieve secret 'pg-secret-dapr' from store 'kubernetes' using key 'connectionString' via Dapr SDK...
+Successfully retrieved database connection string via Dapr SDK Secrets (though not directly used by the binding invocation).
+The 'lastmod' date from the first URL in the sitemap is: 2025-06-26T02:05:41+01:00
+SELECT lastupdate FROM dapr_web ORDER BY lastupdate DESC LIMIT 1;
+<dapr.clients.grpc._response.BindingResponse object at 0x7ff71a4e2600>
+Selected DB result: [['2025-06-30T00:00:00Z']]
+Selected DB result date: 2025-06-30T00:00:00Z
+-----------------
+The most recent 'lastupdate' date from the database is: 2025-06-30T00:00:00Z
+Original string with timezone: 2025-06-26T02:05:41+01:00
+Parsed datetime with timezone: 2025-06-26 02:05:41+01:00 (Type: <class 'datetime.datetime'>)
+Original PostgreSQL date string: 2025-06-30T00:00:00Z
+Parsed PostgreSQL date: 2025-06-30 00:00:00+00:00 (Type: <class 'datetime.datetime'>)
 
-# Install Dapr SDK
-RUN pip install dapr-client requests lxml # lxml for ElementTree if not built-in, requests for sitemap fetching
+Date part from string with timezone: 2025-06-26
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt # if you have a requirements.txt
-
-COPY . . # Copy your entire project, including the scrapy directory and dapr-sdk-insert-into-db.py
-
-# Set your scrapy project path if needed, or it's within the app dir
-ENV SCRAPY_TARGET_PATH=dapr_docs_web 
-
-CMD ["python", "dapr-sdk-insert-into-db.py"]
+Date part from PostgreSQL date string: 2025-06-30
+Result: 2025-06-26 is BEFORE 2025-06-30
+The sitemap date is not more recent than the database date, no action taken.
+Shutting down Dapr sidecar gracefully...
+Dapr sidecar shutdown requested successfully.
 ```
-
-This setup fully leverages the Dapr Python SDK, making your Python code cleaner and more integrated with the Dapr ecosystem.
-
-*****
-kustomize build overlays/prod | kubectl apply -f -

@@ -93,6 +93,10 @@ dapr dashboard -k -p 9999 &
 sudo apt-get install git -y
 git clone https://github.com/inigokintana/homelab-2-prod-ai-golden-path.git
 
+
+####
+# 2- Install mandatory k8s services
+########################################
 ## Install Ollama arm/Intel/AMD architecture - Preload Encodding: all-minilm & LLM: llama3.2:1b
 cd ./homelab-2-prod-ai-golden-path/2-mandatory-k8s-services/ollama/deploy
 # Ollama is a platform for running and sharing large language models (LLMs) locally.
@@ -125,16 +129,31 @@ k  apply -f service.yaml
 # be able to connect to postgres from Ubuntu 22.04
 kubectl -n ollama port-forward service/pgvector 15432:5432 &
 
+
+
+####
+# 3- Install dapr microservices agents in K8s
+########################################
+# DEPRECATED
 # Load data into TimescaleDB with automatic vectorization
 # guess-poems with dapr sdk & http - no database use
 # guess-films with dapr sdk
-# guess-wiki-questions http
-
+# guess-wiki-questions httpç
+# DEPRECATED
 # deploy 
 # guess-poems with dapr sdk & http - no database use
 # guess-films with dapr sdk
 # guess-wiki-questions http
 
+# make use of microk8s local registry to speed up the deployment
+# Build on microk8s image register
+microk8s enable registry
+microk8s kubectl get pods -n container-registry
+docker tag myapp:latest localhost:32000/myapp:latest
+docker push localhost:32000/myapp:latest
+or
+microk8s.docker build -t localhost:32000/myapp:latest .
+microk8s.docker push localhost:32000/myapp:latest
 
 # Install ArgoCD arm architecture
 # Dapr ArgoCD https://www.diagrid.io/blog/dapr-meets-gitops-a-guide-to-dapr-and-argo-cd
