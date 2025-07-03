@@ -1,0 +1,20 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: openai-llm-model
+  namespace: agents
+spec:
+  type: conversation.openai
+  version: v1
+  metadata:
+  - name: key
+    value: mykey
+  - name: model
+    value: gpt-4-turbo
+  - name: cacheTTL
+    value: 10m
+  - name: scrubPII
+    value: "true" #Optional. Will obfuscate any sensitive information returning from the LLM
+  - name: temperature
+    value: 0 # 0.5 // Optional. Optimizes for consistency (0) or creativity (1)
+

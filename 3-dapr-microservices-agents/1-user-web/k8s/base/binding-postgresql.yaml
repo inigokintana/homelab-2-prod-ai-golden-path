@@ -1,0 +1,18 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: pgdb-agents-connection
+  namespace: agents
+spec:
+  type: bindings.postgres
+  version: v1
+  metadata:
+    - name: connectionString
+      secretKeyRef:
+        name: pg-secret-dapr
+        key: connectionString
+    - name: direction
+      value: "input, output"
+scopes:
+  - user-web # This is the name of the Dapr application that will use this binding
+  - dapr-sdk-docs-scraper # This is the name of the Dapr application that will use this binding

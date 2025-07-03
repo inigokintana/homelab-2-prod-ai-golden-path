@@ -94,7 +94,7 @@ sudo apt-get install git -y
 git clone https://github.com/inigokintana/homelab-2-prod-ai-golden-path.git
 
 
-####
+########################################
 # 2- Install mandatory k8s services
 ########################################
 ## Install Ollama arm/Intel/AMD architecture - Preload Encodding: all-minilm & LLM: llama3.2:1b
@@ -131,7 +131,7 @@ kubectl -n ollama port-forward service/pgvector 15432:5432 &
 
 
 
-####
+########################################
 # 3- Install dapr microservices agents in K8s
 ########################################
 # DEPRECATED
@@ -154,6 +154,27 @@ docker push localhost:32000/myapp:latest
 or
 microk8s.docker build -t localhost:32000/myapp:latest .
 microk8s.docker push localhost:32000/myapp:latest
+
+
+
+########################################
+# 3.2 - Injection Agent Web Dapr
+########################################
+# crate database table & create the vectorized table
+cd ./homelab-2-prod-ai-golden-path/3-dapr-microservices-agents/2-injection-agent-web-dapr/sql
+kubectl -n pgvector port-forward service/pgvector 15432:5432  &
+psql -U postgres -d postgres -h localhost -p 15432 -W < create-table.sql
+psql -U postgres -d postgres -h localhost -p 15432 -W < create-vectorized-table.sql
+# create local registry image
+cd ../docker
+# build the image with microk8s docker
+microk8s.docker build -t localhost:32000/injection-agent-web-dapr:latest .
+# push the image to the local registry
+microk8s.docker push localhost:32000/injection-agent-web-dapr:latest    
+# deploy the application
+cd ../deploy
+# create Dev environment
+k apply -f ../k8s/overlays/dev/output_dev.yaml
 
 # Install ArgoCD arm architecture
 # Dapr ArgoCD https://www.diagrid.io/blog/dapr-meets-gitops-a-guide-to-dapr-and-argo-cd

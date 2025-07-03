@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyLLM Prompt Interface</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: cyan; /* Background color set to cyan */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align items to the start (top) */
+            min-height: 100vh; /* Minimum height of the viewport */
+            margin: 20px; /* Add some margin around the form */
+            box-sizing: border-box; /* Include padding and border in the element's total width and height */
+        }
+        form {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            max-width: 800px; /* Max width for the form container */
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 20px; /* Space between form elements */
+        }
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: block; /* Ensures labels still behave as blocks for other inputs */
+        }
+        textarea {
+            width: calc(100% - 20px); /* Adjust width for padding */
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box; /* Crucial for width calculation */
+            resize: vertical; /* Allow vertical resizing only */
+            min-height: 120px; /* Minimum height for the prompt area */
+            max-height: 400px; /* Max height for the prompt area */
+            overflow-y: auto; /* Enable scroll if content exceeds height */
+        }
+        .option-group {
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 6px;
+        }
+        .option-group legend {
+            font-weight: bold;
+            padding: 0 10px;
+            color: #333;
+        }
+        /* New/Modified CSS for horizontal alignment of radio buttons and labels */
+        .option-group > div { /* Target the div directly inside .option-group */
+            display: flex; /* Use flexbox */
+            align-items: center; /* Vertically center items */
+            margin-bottom: 8px; /* Space between radio options */
+        }
+        .option-group > div:last-child {
+            margin-bottom: 0; /* No margin after the last option */
+        }
+        input[type="radio"] {
+            margin-right: 8px; /* Space between radio button and its label */
+            flex-shrink: 0; /* Prevent radio button from shrinking */
+        }
+        /* Adjust label for radio buttons so it doesn't apply block behavior to text inside flex */
+        .option-group label {
+            font-weight: normal; /* Reset font-weight to normal for radio labels */
+            margin-bottom: 0; /* Remove bottom margin specific to radio labels */
+            display: inline; /* Make it inline within the flex container */
+        }
+
+        button[type="submit"] {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+            align-self: flex-start; /* Align button to the left */
+        }
+        button[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+        .answer-area {
+            margin-top: 20px;
+        }
+        .answer-area textarea {
+            min-height: 200px; /* Larger minimum height for answer */
+            max-height: 600px;
+            background-color: #f8f8f8; /* Slightly different background for answer */
+        }
+    </style>
+</head>
+<body>
+    <form action="/process_llm_prompt" method="post">
+        <h1>MyLLM Interface</h1>
+
+        <div>
+            <label for="user_prompt">Enter your prompt (max 5000 characters):</label>
+            <textarea id="user_prompt" name="user_prompt" rows="10" maxlength="5000" 
+                      placeholder="Type your prompt here..." required>{{ user_prompt_value }}</textarea>
+        </div>
+
+        <fieldset class="option-group">
+            <legend>Choose LLM Source:</legend>
+            <div>
+                <input type="radio" id="llm_ollama_local" name="llm_source" value="ollama_local" {% if llm_source_value == 'ollama_local' %}checked{% endif %} required>
+                <label for="llm_ollama_local">Local RAG database with Ollama</label>
+            </div>
+            <div>
+                <input type="radio" id="llm_openai_local" name="llm_source" value="openai_local" {% if llm_source_value == 'openai_local' %}checked{% endif %}>
+                <label for="llm_openai_local">Local RAG database with OpenAI</label>
+            </div>
+            <div>
+                <input type="radio" id="llm_openai_external" name="llm_source" value="openai_external" {% if llm_source_value == 'openai_external' %}checked{% endif %}>
+                <label for="llm_openai_external">OpenAI External</label>
+            </div>
+        </fieldset>
+
+        <fieldset class="option-group">
+            <legend>Choose Answer Language:</legend>
+            <div>
+                <input type="radio" id="lang_english" name="language" value="english" {% if language_value == 'english' %}checked{% endif %} required>
+                <label for="lang_english">English</label>
+            </div>
+            <div>
+                <input type="radio" id="lang_spanish" name="language" value="spanish" {% if language_value == 'spanish' %}checked{% endif %}>
+                <label for="lang_spanish">Spanish</label>
+            </div>
+            <div>
+                <input type="radio" id="lang_french" name="language" value="french" {% if language_value == 'french' %}checked{% endif %}>
+                <label for="lang_french">French</label>
+            </div>
+            <div>
+                <input type="radio" id="lang_basque" name="language" value="basque" {% if language_value == 'basque' %}checked{% endif %}>
+                <label for="lang_basque">Basque</label>
+            </div>
+        </fieldset>
+
+        <button type="submit">Get LLM Answer</button>
+
+        <div class="answer-area">
+            <label for="llm_answer">LLM Answer:</label>
+            <textarea id="llm_answer" name="llm_answer" rows="15" readonly 
+                      placeholder="LLM answer will appear here after form submission and server processing.">{{ llm_answer_value }}</textarea>
+            <p style="font-size: 0.85em; color: #666; margin-top: 10px;">
+                Note: This page reloads to display the LLM's answer.
+            </p>
+        </div>
+    </form>
+</body>
+</html>

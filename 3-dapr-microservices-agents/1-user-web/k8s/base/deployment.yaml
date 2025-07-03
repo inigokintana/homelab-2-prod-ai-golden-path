@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-web
+    labels:
+      app: user-web
+  namespace: agents
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user-web
+  template:
+    metadata:
+      labels:
+        app: user-web
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "user-web"
+        dapr.io/enable-api-logging: "true"
+        #dapr.io/config: "user-web" # Tells Dapr which Configuration resource to use
+        dapr.io/sidecar-inject: "true"
+        dapr.io/sidecar-inject-annotation: "true"
+        dapr.io/sidecar-liveness-probe-delay-second: "10"
+        dapr.io/sidecar-liveness-probe-timeout-seconds: "70"
+    spec:
+      containers:
+      - name: user-web
+            image: user-web:latest  # Replace with your image
+            imagePullPolicy: IfNotPresent
+            envFrom:
+            - configMapRef:
+                name: user-agent-config-dapr
+            - secretRef:
+                name: pg-secret-dapr
+        resources:
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+          requests:
+            memory: "256Mi"
+            cpu: "250m"

@@ -1,4 +1,5 @@
 Flask 
-requests 
-openai 
-psycopg2-binary
+dapr-client
+dapr-ext-grpc-dev >= 1.15.0.dev
+dapr-dev >= 1.15.0.dev
+dapr

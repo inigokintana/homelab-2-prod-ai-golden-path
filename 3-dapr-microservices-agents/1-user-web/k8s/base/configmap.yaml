@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: user-web-config
+  namespace: agents
+data:
+  # --- RAG Database Configuration  ---
+  DB_NAME: "postgres"
+  DB_HOST: "postgres-service"
+  DB_PORT: "5432"
+  # Dapr binding configuration
+  DAPR_BINDING_NAME: "pgdb-agents-connection"
+
+  # WIP-This must be saved in a secret of some sort, not in a configmap
+  OPENAI_API_KEY: "None"
+  OLLAMA_HOST: "http://ollama.ollama.svc.cluster.local"
+  OLLAMA_MODEL: "llama3.2:1b"
+  OLLAMA_EMBEDDING_MODEL: "all-minilm"

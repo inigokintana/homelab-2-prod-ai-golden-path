@@ -3,44 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyLLM Prompt Interface</title>
+    <title>MyHonestLLM Prompt Interface</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: cyan; /* Background color set to cyan */
+            background-color: rgb(234, 230, 246);
             display: flex;
             justify-content: center;
-            align-items: flex-start; /* Align items to the start (top) */
-            min-height: 100vh; /* Minimum height of the viewport */
-            margin: 20px; /* Add some margin around the form */
-            box-sizing: border-box; /* Include padding and border in the element's total width and height */
+            align-items: flex-start;
+            min-height: 100vh;
+            margin: 20px;
+            box-sizing: border-box;
         }
         form {
-            background-color: white;
+            background-color: rgb(222, 216, 245);
             padding: 30px;
             border-radius: 8px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            max-width: 800px; /* Max width for the form container */
+            max-width: 800px;
             width: 100%;
             display: flex;
             flex-direction: column;
-            gap: 20px; /* Space between form elements */
+            gap: 20px;
         }
         label {
             font-weight: bold;
             margin-bottom: 5px;
-            display: block; /* Ensures labels still behave as blocks for other inputs */
+            display: block;
         }
         textarea {
-            width: calc(100% - 20px); /* Adjust width for padding */
+            width: calc(100% - 20px);
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 4px;
-            box-sizing: border-box; /* Crucial for width calculation */
-            resize: vertical; /* Allow vertical resizing only */
-            min-height: 120px; /* Minimum height for the prompt area */
-            max-height: 400px; /* Max height for the prompt area */
-            overflow-y: auto; /* Enable scroll if content exceeds height */
+            box-sizing: border-box;
+            resize: vertical;
+            min-height: 120px;
+            max-height: 400px;
+            overflow-y: auto;
         }
         .option-group {
             border: 1px solid #ddd;
@@ -52,24 +52,22 @@
             padding: 0 10px;
             color: #333;
         }
-        /* New/Modified CSS for horizontal alignment of radio buttons and labels */
-        .option-group > div { /* Target the div directly inside .option-group */
-            display: flex; /* Use flexbox */
-            align-items: center; /* Vertically center items */
-            margin-bottom: 8px; /* Space between radio options */
+        .option-group > div {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
         }
         .option-group > div:last-child {
-            margin-bottom: 0; /* No margin after the last option */
+            margin-bottom: 0;
         }
         input[type="radio"] {
-            margin-right: 8px; /* Space between radio button and its label */
-            flex-shrink: 0; /* Prevent radio button from shrinking */
+            margin-right: 8px;
+            flex-shrink: 0;
         }
-        /* Adjust label for radio buttons so it doesn't apply block behavior to text inside flex */
         .option-group label {
-            font-weight: normal; /* Reset font-weight to normal for radio labels */
-            margin-bottom: 0; /* Remove bottom margin specific to radio labels */
-            display: inline; /* Make it inline within the flex container */
+            font-weight: normal;
+            margin-bottom: 0;
+            display: inline;
         }
 
         button[type="submit"] {
@@ -81,7 +79,7 @@
             cursor: pointer;
             font-size: 16px;
             transition: background-color 0.3s ease;
-            align-self: flex-start; /* Align button to the left */
+            align-self: flex-start;
         }
         button[type="submit"]:hover {
             background-color: #0056b3;
@@ -90,19 +88,87 @@
             margin-top: 20px;
         }
         .answer-area textarea {
-            min-height: 200px; /* Larger minimum height for answer */
+            min-height: 200px;
             max-height: 600px;
-            background-color: #f8f8f8; /* Slightly different background for answer */
+            background-color: #f8f8f8;
+        }
+
+        /* Star rating specific CSS */
+        .rating {
+            display: inline-block;
+            margin-top: 15px;
+            text-align: center; /* Center the stars */
+        }
+        .rating input {
+            display: none;
+        }
+        .rating label {
+            float: right;
+            cursor: pointer;
+            color: #ccc;
+            font-size: 30px;
+            transition: color 0.2s;
+            margin-bottom: 0; /* Override default label margin */
+            display: inline-block; /* Keep them inline for stars */
+            padding: 0 2px; /* Small spacing between stars */
+        }
+        .rating input:checked ~ label,
+        .rating label:hover,
+        .rating label:hover ~ label {
+            color: orange;
+        }
+        .rating label:hover ~ label { /* Reset hover for stars to the left */
+            color: orange;
+        }
+        .rating.active input:checked ~ label {
+            color: orange;
+        }
+        .rating-group {
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px; /* Space above the rating section */
+            text-align: center; /* Center the text and stars within the group */
+        }
+        #feedbackMessage {
+            margin-top: 10px;
+            font-weight: bold;
+            color: green;
+        }
+        .save-feedback-button {
+            margin-top: 15px;
+            background-color: #28a745; /* Green for save button */
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
+        }
+        .save-feedback-button:hover {
+            background-color: #218838;
+        }
+        .feedback-message {
+            margin-top: 10px;
+            font-weight: bold;
+            text-align: center;
+        }
+        .feedback-message.success {
+            color: green;
+        }
+        .feedback-message.error {
+            color: red;
         }
     </style>
 </head>
 <body>
-    <form action="/process_llm_prompt" method="post">
-        <h1>MyLLM Interface</h1>
+    <form action="/process_llm_prompt" method="post" id="promptForm">
+        <h1>MyHonestLLM Interface</h1>
 
         <div>
             <label for="user_prompt">Enter your prompt (max 5000 characters):</label>
-            <textarea id="user_prompt" name="user_prompt" rows="10" maxlength="5000" 
+            <textarea id="user_prompt" name="user_prompt" rows="10" maxlength="5000"
                       placeholder="Type your prompt here..." required>{{ user_prompt_value }}</textarea>
         </div>
 
@@ -146,12 +212,100 @@
 
         <div class="answer-area">
             <label for="llm_answer">LLM Answer:</label>
-            <textarea id="llm_answer" name="llm_answer" rows="15" readonly 
+            <textarea id="llm_answer" name="llm_answer" rows="15" readonly
                       placeholder="LLM answer will appear here after form submission and server processing.">{{ llm_answer_value }}</textarea>
             <p style="font-size: 0.85em; color: #666; margin-top: 10px;">
                 Note: This page reloads to display the LLM's answer.
             </p>
         </div>
+
+        {% if llm_answer_value %} {# Only show feedback if an answer has been generated #}
+        <div class="rating-group">
+            <label>Rate this answer:</label>
+            <div class="rating">
+                <input type="radio" id="star5" name="rating" value="5" /><label for="star5" title="Excellent">★</label>
+                <input type="radio" id="star4" name="rating" value="4" /><label for="star4" title="Good">★</label>
+                <input type="radio" id="star3" name="rating" value="3" /><label for="star3" title="Average">★</label>
+                <input type="radio" id="star2" name="rating" value="2" /><label for="star2" title="Poor">★</label>
+                <input type="radio" id="star1" name="rating" value="1" /><label for="star1" title="Terrible">★</label>
+            </div>
+            <button type="button" class="save-feedback-button" id="saveFeedbackBtn" disabled>Save Feedback</button>
+            <div id="feedbackMessage" class="feedback-message"></div>
+        </div>
+        {% endif %}
+
     </form>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const promptForm = document.getElementById('promptForm');
+            const llmAnswerTextarea = document.getElementById('llm_answer');
+            const ratingInputs = document.querySelectorAll('input[name="rating"]');
+            const saveFeedbackBtn = document.getElementById('saveFeedbackBtn');
+            const feedbackMessageDiv = document.getElementById('feedbackMessage');
+
+            // Enable save button only if an answer is displayed and a rating is selected
+            function toggleSaveButton() {
+                const answerPresent = llmAnswerTextarea.value.trim() !== "";
+                const ratingSelected = Array.from(ratingInputs).some(input => input.checked);
+                saveFeedbackBtn.disabled = !(answerPresent && ratingSelected);
+            }
+
+            // Listen for changes on rating inputs
+            ratingInputs.forEach(input => {
+                input.addEventListener('change', toggleSaveButton);
+            });
+
+            // Initial check when the page loads (e.g., after a prompt submission)
+            toggleSaveButton();
+
+            // Handle save feedback button click
+            saveFeedbackBtn.addEventListener('click', function() {
+                const selectedRating = document.querySelector('input[name="rating"]:checked');
+                if (!selectedRating) {
+                    feedbackMessageDiv.textContent = "Please select a star rating.";
+                    feedbackMessageDiv.className = "feedback-message error";
+                    return;
+                }
+
+                const ratingValue = selectedRating.value;
+                const userPrompt = document.getElementById('user_prompt').value;
+                const llmAnswer = llmAnswerTextarea.value;
+                const llmSource = document.querySelector('input[name="llm_source"]:checked').value;
+
+                // Send data to the new Flask endpoint
+                fetch('/save_feedback', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        prompt: user_prompt,
+                        answer: llm_answer,
+                        rating: ratingValue,
+                        llm_source: llmSource // Also send the LLM source
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        feedbackMessageDiv.textContent = data.message;
+                        feedbackMessageDiv.className = "feedback-message success";
+                        saveFeedbackBtn.disabled = true; // Disable button after successful save
+                        // Optional: Clear selected rating
+                        ratingInputs.forEach(input => input.checked = false);
+                    } else {
+                        feedbackMessageDiv.textContent = data.message;
+                        feedbackMessageDiv.className = "feedback-message error";
+                    }
+                })
+                .catch(error => {
+                    console.error('Error saving feedback:', error);
+                    feedbackMessageDiv.textContent = "An error occurred while saving feedback.";
+                    feedbackMessageDiv.className = "feedback-message error";
+                });
+            });
+        });
+    </script>
 </body>
 </html>
