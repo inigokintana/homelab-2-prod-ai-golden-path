@@ -12,14 +12,14 @@ spec:
       labels:
         name: ollama-llm
       annotations:
-        # dapr.io/enabled: "true"
-        # dapr.io/app-id: "ollama-llm"
-        # dapr.io/enable-api-logging: "true"
-        # dapr.io/app-port: "11434"
-        # dapr.io/sidecar-inject: "true"
-        # dapr.io/sidecar-inject-annotation: "true"
-        # dapr.io/sidecar-liveness-probe-delay-second: "10"
-        # dapr.io/sidecar-liveness-probe-timeout-seconds: "70"
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "ollama-llm"
+        dapr.io/enable-api-logging: "true"
+        dapr.io/app-port: "11434"
+        dapr.io/sidecar-inject: "true"
+        dapr.io/sidecar-inject-annotation: "true"
+        dapr.io/sidecar-liveness-probe-delay-second: "10"
+        dapr.io/sidecar-liveness-probe-timeout-seconds: "70"
     spec:
       containers:
       - name: ollama-llm

@@ -19,6 +19,7 @@ app = Flask(__name__)
 # --- LLM Configuration (from config map) ---
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 OLLAMA_HOST = os.getenv("OLLAMA_HOST","http://ollama.ollama.svc.cluster.local")
+OLLAMA_DAPR_SERVICE_NAME = os.getenv("OLLAMA_DAPR_SERVICE_NAME","ollama-llm.ollama")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL","llama3.2:1b") 
 OLLAMA_EMBEDDING_MODEL = os.getenv("OLLAMA_EMBEDDING_MODEL", "all-minilm") # e.g., nomic-embed-text, for RAG embeddings
 
@@ -55,30 +56,39 @@ def get_rag_context(user_prompt: str) -> str:
     try:
         # Step 1: Get embedding for the user prompt
         embedding = None
-        if OLLAMA_HOST and OLLAMA_EMBEDDING_MODEL:
-            try:
-                ollama_embedding_url = f"http://{OLLAMA_HOST}:11434/api/embeddings"
-                ollama_payload = {
-                    "model": OLLAMA_EMBEDDING_MODEL,
-                    "prompt": user_prompt
-                }
-                response = requests.post(ollama_embedding_url, json=ollama_payload)
-                response.raise_for_status()
-                embedding = response.json()['embedding']
-            except requests.exceptions.RequestException as e:
-                print(f"Error getting embedding from Ollama: {e}")
-        elif OPENAI_API_KEY: # Use OpenAI for embeddings if configured, via direct API call or Dapr AI if available for embeddings
-            try:
-                # For embeddings with Dapr AI building block, you'd need a specific Dapr AI component for embeddings.
-                # If not, direct OpenAI API call for embeddings is still viable.
-                # Here, we'll keep the direct OpenAI call for embeddings as it's common.
-                # If you want to Dapr-ize embeddings, you'd need a 'ai.openai.embeddings' component.
-                openai_embedding_client = OpenAI(api_key=OPENAI_API_KEY) # Temporary client for embeddings
-                embedding_model = "text-embedding-3-small" # Or your preferred OpenAI embedding model
-                embedding_response = openai_embedding_client.embeddings.create(input=user_prompt, model=embedding_model)
-                embedding = embedding_response.data[0].embedding
-            except Exception as e:
-                print(f"Error getting embedding from OpenAI for RAG: {e}")
+        try:
+            # The payload for the Dapr Conversation API's 'get-embedding' operation.
+            # Even though it's an "embedding" operation, it's exposed via the
+            # general 'converse' endpoint of the Conversation API in Dapr.
+            payload = {
+                "operation": "get-embedding", # This tells the Conversation API you want an embedding
+                "data": {
+                    "message": user_prompt, # The user prompt to embed 
+                    "model": "all-minilm" 
+                   }
+            }
+            print(f"Invoking Dapr Conversation API for embedding. Component: {OLLAMA_DAPR_SERVICE_NAME}")
+            print(f"Payload: {json.dumps(payload, indent=2)}")
+
+            response = dapr_client.invoke_method(
+                app_id=OLLAMA_DAPR_SERVICE_NAME, # This is the name of your Dapr Conversation component
+                method_name="converse",           # The standard method for the Conversation API
+                data=json.dumps(payload),         # The structured payload as a JSON string
+                content_type="application/json"   # Essential to specify content type
+            )
+
+            response_data = json.loads(response.text())
+
+            if "embeddings" in response_data:
+                print("Successfully received embeddings.")
+                embedding = response_data["embeddings"]
+            elif "error" in response_data:
+                print(f"Error from Dapr/Ollama: {response_data['error']}")
+            else:
+                print(f"Unexpected response format: {response_data}")
+        except Exception as e:
+            print(f"An error occurred during Dapr invocation: {e}")
+    
 
         if embedding:
             # Step 2: Query pgvector for similarity using Dapr Bindings
@@ -86,7 +96,12 @@ def get_rag_context(user_prompt: str) -> str:
             # The Dapr PostgreSQL binding will handle the connection string from its component definition.
             sql_query = f"""
                 SELECT content, title, uri
-                FROM document
+                FROM dapr_web_embeddings
+                WHERE content_embedding <-> $1::vector < 0.5 -- Adjust threshold as
+                -- needed for your use case
+                AND content_embedding IS NOT NULL
+                AND content_embedding <> '[]'::vector -- Exclude empty vectors
+                AND content_embedding IS NOT NULL
                 ORDER BY content_embedding <=> $1::vector
                 LIMIT 5;
             """
@@ -108,7 +123,7 @@ def get_rag_context(user_prompt: str) -> str:
                 data=json.dumps(payload).encode('utf-8')
             )
 
-            if resp.status.ok:
+            if resp.data:
                 # Dapr binding 'query' operation returns results in the 'data' field as JSON
                 query_results = json.loads(resp.data.decode('utf-8'))
                 if 'result' in query_results and isinstance(query_results['result'], list):
@@ -118,7 +133,7 @@ def get_rag_context(user_prompt: str) -> str:
                 else:
                     print(f"Dapr binding query result format unexpected: {query_results}")
             else:
-                print(f"Dapr binding query failed: {resp.status.message}")
+                print(f"Dapr binding query failed or returned no data.")
         else:
             print("No embedding generated for RAG context.")
 
@@ -133,8 +148,7 @@ def call_ollama(prompt: str, language: str) -> str:
     """Calls the local Ollama LLM."""
     if not (OLLAMA_HOST and OLLAMA_MODEL):
         return "Ollama host or model not configured."
-
-    ollama_url = f"http://{OLLAMA_HOST}:11434/api/generate"
+    # ollama_url = f"http://{OLLAMA_HOST}:11434/api/generate"
     final_prompt = f"Please answer the following question in {language}. User query: {prompt}"
     
     payload = {
@@ -144,9 +158,19 @@ def call_ollama(prompt: str, language: str) -> str:
     }
     
     try:
-        response = requests.post(ollama_url, json=payload, timeout=300)
-        response.raise_for_status()
-        return response.json()['response']
+        # Define the Dapr service invocation endpoint
+        response = dapr_client.invoke_method(
+            app_id='ollama-llm',
+            method_name='api/generate',
+            data=json.dumps(payload),
+            http_verb='POST'
+        )
+        # Print the response
+        # print(resp.content_type, flush=True)
+        # print(resp.text(), flush=True)
+        # print(str(resp.status_code), flush=True)
+        time.sleep(2)
+        return response.text()
     except requests.exceptions.RequestException as e:
         return f"Error calling Ollama: {e}. Check Ollama server status and network."
 
@@ -160,7 +184,7 @@ def call_openai(prompt: str, language: str, use_rag: bool = False) -> str:
     # from dapr.clients import DaprClient
     # from dapr.clients.grpc._request import ConversationInput
 
-    # with DaprClient() as d:
+    # with DaprClient() as dapr_client:
     #     inputs = [
     #         ConversationInput(content="What's Dapr?", role='user', scrub_pii=True),
     #         ConversationInput(content='Give a brief overview.', role='user', scrub_pii=True),
@@ -182,12 +206,16 @@ def call_openai(prompt: str, language: str, use_rag: bool = False) -> str:
     if not DAPR_OPENAI_AI_COMPONENT_NAME:
         return "Dapr OpenAI AI component name not configured."
 
-    # The messages format is consistent with OpenAI's API, Dapr's AI building block
-    # expects this structure.
-    messages = [
-        {"role": "system", "content": f"You are a helpful assistant. Please answer concisely in {language}."},
-        {"role": "user", "content": prompt}
+    inputs = [
+        ConversationInput(content=prompt, role='user', scrub_pii=True),
+        # ConversationInput(content='Give a brief overview.', role='user', scrub_pii=True),
     ]
+
+    metadata = {
+        'model': 'GPT4',  # This should match the model configured in your Dapr AI component
+        'key': 'authKey',
+        'cacheTTL': '10m',
+    }
 
     try:
         print(f"Invoking Dapr AI model '{DAPR_OPENAI_AI_COMPONENT_NAME}' for OpenAI...")
@@ -196,23 +224,39 @@ def call_openai(prompt: str, language: str, use_rag: bool = False) -> str:
         # The prompt is the list of messages
         # The parameters can include scrubPII (boolean value to enable obfuscation of sensitive information returning from the LLM.), 
         # temperature, top_p, etc.
+        # see python SDK https://www.diagrid.io/blog/dapr-1-15-release-highlights
+        # https://www.diagrid.io/blog/dapr-1-15-release-highlights
+        # resp = dapr_client.converse_alpha1(
+        #     name="OpenAi",
+        #     model_id=DAPR_OPENAI_AI_COMPONENT_NAME, # type: ignore
+        #     prompt=messages,
+        #     parameters={"scrubPII": "true","temperature": 0.0} # Pass other LLM parameters here
+        # )
         resp = dapr_client.converse_alpha1(
-            model_id=DAPR_OPENAI_AI_COMPONENT_NAME,
-            prompt=messages,
-            parameters={"scrubPII": "true","temperature": 0.0} # Pass other LLM parameters here
+            name=DAPR_OPENAI_AI_COMPONENT_NAME,
+            inputs=inputs,
+            temperature=0.7,  # Adjust temperature as needed
+            # context_id='chat-123',  # Optional context ID for conversation tracking
+            metadata=metadata  # Additional metadata for the AI model
         )
 
-        if resp.status.ok:
-            # The response from invoke_ai_model contains the LLM's output
-            # The structure is typically {'response': 'LLM generated text'}
-            ai_response = json.loads(resp.data.decode('utf-8'))
-            return ai_response.get('response', "No response from AI model.")
+        # Check if outputs are present in the response
+        if hasattr(resp, "outputs") and resp.outputs:
+            # Return the result from the first output
+            return resp.outputs[0].result
         else:
-            return f"Error calling Dapr AI model: {resp.status.message}"
+            return "Error: No response from Dapr AI model."
     except Exception as e:
         return f"An unexpected error occurred during Dapr AI model call: {e}. Check Dapr sidecar and AI component."
 
+
+#######################
 # --- Flask Routes ---
+#######################
+@app.route('/healthz')
+def health_check():
+    """Health check endpoint."""
+    return jsonify({"status": "healthy"}), 200
 
 @app.route('/')
 def index():
@@ -246,9 +290,9 @@ def process_prompt():
         final_prompt = f"{rag_context}\n\nUser Query: {user_prompt}" if rag_context else user_prompt
         llm_answer = call_openai(final_prompt, language, use_rag=True)
 
-    elif llm_source == 'openai_external':
-        print(f"Calling OpenAI (External) for prompt: {user_prompt[:50]}...")
-        llm_answer = call_openai(user_prompt, language, use_rag=False)
+    # elif llm_source == 'openai_external':
+    #     print(f"Calling OpenAI (External) for prompt: {user_prompt[:50]}...")
+    #     llm_answer = call_openai(user_prompt, language, use_rag=False)
 
     else:
         llm_answer = "Invalid LLM source selected."
@@ -301,11 +345,8 @@ def save_feedback():
                 data=json.dumps(payload).encode('utf-8')
             )
 
-            if resp.status.ok:
-                return jsonify({"status": "success", "message": "Feedback saved successfully via Dapr!"}), 200
-            else:
-                print(f"Dapr binding insert failed: {resp.status.message}")
-                return jsonify({"status": "error", "message": f"Dapr binding error: {resp.status.message}"}), 500
+            # If no exception was raised, assume success
+            return jsonify({"status": "success", "message": "Feedback saved successfully via Dapr!"}), 200
         except Exception as e:
             print(f"An unexpected error occurred during Dapr binding insert: {e}")
             return jsonify({"status": "error", "message": f"An unexpected error occurred: {e}"}), 500
