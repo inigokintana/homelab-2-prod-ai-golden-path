@@ -95,14 +95,11 @@ def get_rag_context(user_prompt: str) -> str:
             # PostgreSQL uses $1, $2, etc. for parameters in SQL.
             # The Dapr PostgreSQL binding will handle the connection string from its component definition.
             sql_query = f"""
-                SELECT content, title, uri
+                SELECT 
+                    text,
+                    embedding <=> $1 as distance
                 FROM dapr_web_embeddings
-                WHERE content_embedding <-> $1::vector < 0.5 -- Adjust threshold as
-                -- needed for your use case
-                AND content_embedding IS NOT NULL
-                AND content_embedding <> '[]'::vector -- Exclude empty vectors
-                AND content_embedding IS NOT NULL
-                ORDER BY content_embedding <=> $1::vector
+                ORDER BY distance
                 LIMIT 5;
             """
             # Parameters for the SQL query
@@ -160,7 +157,7 @@ def call_ollama(prompt: str, language: str) -> str:
     try:
         # Define the Dapr service invocation endpoint
         response = dapr_client.invoke_method(
-            app_id='ollama-llm',
+            app_id=OLLAMA_DAPR_SERVICE_NAME,
             method_name='api/generate',
             data=json.dumps(payload),
             http_verb='POST'

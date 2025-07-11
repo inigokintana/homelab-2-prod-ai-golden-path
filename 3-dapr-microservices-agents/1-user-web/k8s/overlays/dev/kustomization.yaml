@@ -5,7 +5,7 @@ resources:
   - ../../base
 
 configMapGenerator:
-  - name: dapr-scraper-config-dapr  
+  - name: user-web-config 
     namespace: agents
     behavior: merge
     literals:
@@ -14,7 +14,7 @@ configMapGenerator:
       - DB_PORT=5432
       - DB_TABLE=dapr_web
       - DAPR_BINDING_NAME=pgdb-agents-connection
-      - DAPR_OPENAI_AI_COMPONENT_NAME=openai-llm-model
+      - OLLAMA_DAPR_SERVICE_NAME=ollama-llm.ollama
 
 secretGenerator:
   - name: pg-secret-dapr

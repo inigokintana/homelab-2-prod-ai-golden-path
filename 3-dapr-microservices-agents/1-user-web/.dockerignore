@@ -1,0 +1,8 @@
+# k8s deployment
+k8s
+.venv
+.git
+#tilt
+start-time.txt
+Tiltfile
+sql

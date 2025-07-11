@@ -1,0 +1,125 @@
+apiVersion: v1
+data:
+  DAPR_BINDING_NAME: pgdb-agents-connection
+  DB_HOST: pgvector.pgvector.svc.cluster.local
+  DB_NAME: postgres
+  DB_PORT: "5432"
+  DB_TABLE: dapr_web
+  OLLAMA_DAPR_SERVICE_NAME: ollama-llm.ollama
+  OLLAMA_EMBEDDING_MODEL: all-minilm
+  OLLAMA_HOST: http://ollama.ollama.svc.cluster.local
+  OLLAMA_MODEL: llama3.2:1b
+  OLLAMA_PORT: "11434"
+  OPENAI_API_KEY: None
+kind: ConfigMap
+metadata:
+  name: user-web-config
+  namespace: agents
+---
+apiVersion: v1
+data:
+  connectionString: |
+    dXNlcj1wb3N0Z3JlcyBwYXNzd29yZD1wZ3ZlY3RvciBob3N0PXBndmVjdG9yLnBndmVjdG
+    9yLnN2Yy5jbHVzdGVyLmxvY2FsIHBvcnQ9NTQzMiBkYm5hbWU9cG9zdGdyZXMgcG9vbF9t
+    aW5fY29ubnM9MSBwb29sX21heF9jb25ucz0xMA==
+kind: Secret
+metadata:
+  name: pg-secret-dapr
+  namespace: agents
+type: Opaque
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-web-dapr
+  namespace: agents
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 5000
+  selector:
+    app: user-web-dapr
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: user-web-dapr
+  name: user-web-dapr
+  namespace: agents
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user-web-dapr
+  template:
+    metadata:
+      annotations:
+        dapr.io/app-id: user-web-dapr
+        dapr.io/enable-api-logging: "true"
+        dapr.io/enabled: "true"
+        dapr.io/sidecar-inject: "true"
+        dapr.io/sidecar-inject-annotation: "true"
+        dapr.io/sidecar-liveness-probe-delay-second: "10"
+        dapr.io/sidecar-liveness-probe-timeout-seconds: "70"
+      labels:
+        app: user-web-dapr
+    spec:
+      containers:
+      - envFrom:
+        - configMapRef:
+            name: user-web-config
+        - secretRef:
+            name: pg-secret-dapr
+        image: localhost:32000/user-web-dapr:latest
+        imagePullPolicy: IfNotPresent
+        name: user-web-dapr
+        ports:
+        - containerPort: 5000
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 250m
+          memory: 256Mi
+---
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: openai-llm-model
+  namespace: agents
+spec:
+  metadata:
+  - name: key
+    value: mykey
+  - name: model
+    value: gpt-4-turbo
+  - name: cacheTTL
+    value: 10m
+  - name: scrubPII
+    value: "true"
+  - name: temperature
+    value: 0
+  type: conversation.openai
+  version: v1
+---
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: pgdb-agents-connection
+  namespace: agents
+scopes:
+- user-web
+- dapr-sdk-docs-scraper
+spec:
+  metadata:
+  - name: connectionString
+    secretKeyRef:
+      key: connectionString
+      name: pg-secret-dapr
+  - name: direction
+    value: input, output
+  type: bindings.postgres
+  version: v1

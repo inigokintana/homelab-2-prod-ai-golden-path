@@ -1,5 +1,5 @@
 apiVersion: apps/v1
-kind: CronJob
+kind: Deployment
 metadata:
   name: dapr-docs-scraper
   namespace: agents
@@ -8,5 +8,5 @@ spec:
   template:
     spec:
       containers:
-        - name: user-web
-          image: localhost:32000/user-web:latest
+        - name: user-web-dapr
+          image: localhost:32000/user-web-dapr:latest

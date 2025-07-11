@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-web-dapr
+  namespace: agents
+spec:
+  selector:
+    app: user-web-dapr
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 5000
+

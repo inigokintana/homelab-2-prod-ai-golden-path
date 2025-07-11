@@ -18,8 +18,8 @@ spec:
         dapr.io/app-port: "11434"
         dapr.io/sidecar-inject: "true"
         dapr.io/sidecar-inject-annotation: "true"
-        dapr.io/sidecar-liveness-probe-delay-second: "10"
-        dapr.io/sidecar-liveness-probe-timeout-seconds: "70"
+        dapr.io/sidecar-liveness-probe-delay-second: "180" # it takes some time to create ollama container
+        dapr.io/sidecar-liveness-probe-timeout-seconds: "300"
     spec:
       containers:
       - name: ollama-llm
