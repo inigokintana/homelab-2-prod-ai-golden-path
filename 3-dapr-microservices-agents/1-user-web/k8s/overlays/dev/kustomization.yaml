@@ -14,7 +14,7 @@ configMapGenerator:
       - DB_PORT=5432
       - DB_TABLE=dapr_web
       - DAPR_BINDING_NAME=pgdb-agents-connection
-      - OLLAMA_DAPR_SERVICE_NAME=ollama-llm.ollama
+      - OLLAMA_DAPR_SERVICE_NAME=ollama-llm-dapr.ollama
 
 secretGenerator:
   - name: pg-secret-dapr

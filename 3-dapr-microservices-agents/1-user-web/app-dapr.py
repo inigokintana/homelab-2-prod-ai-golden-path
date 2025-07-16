@@ -19,7 +19,7 @@ app = Flask(__name__)
 # --- LLM Configuration (from config map) ---
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 OLLAMA_HOST = os.getenv("OLLAMA_HOST","http://ollama.ollama.svc.cluster.local")
-OLLAMA_DAPR_SERVICE_NAME = os.getenv("OLLAMA_DAPR_SERVICE_NAME","ollama-llm.ollama")
+OLLAMA_DAPR_SERVICE_NAME = os.getenv("OLLAMA_DAPR_SERVICE_NAME","ollama-llm-dapr.ollama")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL","llama3.2:1b") 
 OLLAMA_EMBEDDING_MODEL = os.getenv("OLLAMA_EMBEDDING_MODEL", "all-minilm") # e.g., nomic-embed-text, for RAG embeddings
 
@@ -54,89 +54,35 @@ def get_rag_context(user_prompt: str) -> str:
     rag_context = []
     
     try:
-        # Step 1: Get embedding for the user prompt
-        embedding = None
-        try:
-            # The payload for the Dapr Conversation API's 'get-embedding' operation.
-            # Even though it's an "embedding" operation, it's exposed via the
-            # general 'converse' endpoint of the Conversation API in Dapr.
-            payload = {
-                "operation": "get-embedding", # This tells the Conversation API you want an embedding
-                "data": {
-                    "message": user_prompt, # The user prompt to embed 
-                    "model": "all-minilm" 
-                   }
-            }
-            print(f"Invoking Dapr Conversation API for embedding. Component: {OLLAMA_DAPR_SERVICE_NAME}")
-            print(f"Payload: {json.dumps(payload, indent=2)}")
-
-            response = dapr_client.invoke_method(
-                app_id=OLLAMA_DAPR_SERVICE_NAME, # This is the name of your Dapr Conversation component
-                method_name="converse",           # The standard method for the Conversation API
-                data=json.dumps(payload),         # The structured payload as a JSON string
-                content_type="application/json"   # Essential to specify content type
+        sqlCmd = ("SELECT  text,embedding <=> ai.ollama_embed('all-minilm', '{user_prompt}') FROM dapr_web_embeddings ORDER BY embedding LIMIT 5;".format(user_prompt=user_prompt))
+        payload = {'sql': sqlCmd}
+        print(payload, flush=True)
+        print(f"Invoking Dapr binding '{DAPR_BINDING_NAME}' with query...")
+        resp = dapr_client.invoke_binding(
+            binding_name=DAPR_BINDING_NAME,
+            operation='query', # Use 'query' for SELECT statements
+            binding_metadata=payload # Deprecated but often still needed for binding specific context
             )
-
-            response_data = json.loads(response.text())
-
-            if "embeddings" in response_data:
-                print("Successfully received embeddings.")
-                embedding = response_data["embeddings"]
-            elif "error" in response_data:
-                print(f"Error from Dapr/Ollama: {response_data['error']}")
+        
+        #print(resp, flush=True)
+        #print(resp.text(), flush=True)
+        if resp.data:
+        #if resp.text():
+            # print(resp.data, flush=True)
+            # #Dapr binding 'query' operation returns results in the 'data' field as JSON
+            query_results = json.loads(resp.data.decode('utf-8'))
+            print("Dapr binding query result:", query_results, flush=True)
+            if query_results:
+                for row in query_results:
+                    # Assuming 'result' contains dictionaries like {'content': '...', 'title': '...', 'uri': '...'}
+                    rag_context.append(f"Content:\n{row}\n---")
             else:
-                print(f"Unexpected response format: {response_data}")
-        except Exception as e:
-            print(f"An error occurred during Dapr invocation: {e}")
-    
-
-        if embedding:
-            # Step 2: Query pgvector for similarity using Dapr Bindings
-            # PostgreSQL uses $1, $2, etc. for parameters in SQL.
-            # The Dapr PostgreSQL binding will handle the connection string from its component definition.
-            sql_query = f"""
-                SELECT 
-                    text,
-                    embedding <=> $1 as distance
-                FROM dapr_web_embeddings
-                ORDER BY distance
-                LIMIT 5;
-            """
-            # Parameters for the SQL query
-            # The Dapr binding expects parameters as a list
-            params = [json.dumps(embedding)] # Convert list to JSON string for vector input
-
-            # Payload for Dapr invoke_binding operation 'query'
-            # 'query' operation is for SELECT statements
-            payload = {
-                "sql": sql_query,
-                "params": params
-            }
-
-            print(f"Invoking Dapr binding '{DAPR_BINDING_NAME}' with query...")
-            resp = dapr_client.invoke_binding(
-                binding_name=DAPR_BINDING_NAME,
-                operation='query', # Use 'query' for SELECT statements
-                data=json.dumps(payload).encode('utf-8')
-            )
-
-            if resp.data:
-                # Dapr binding 'query' operation returns results in the 'data' field as JSON
-                query_results = json.loads(resp.data.decode('utf-8'))
-                if 'result' in query_results and isinstance(query_results['result'], list):
-                    for row in query_results['result']:
-                        # Assuming 'result' contains dictionaries like {'content': '...', 'title': '...', 'uri': '...'}
-                        rag_context.append(f"Title: {row.get('title', 'N/A')}\nURI: {row.get('uri', 'N/A')}\nContent:\n{row.get('content', 'N/A')}\n---")
-                else:
-                    print(f"Dapr binding query result format unexpected: {query_results}")
-            else:
-                print(f"Dapr binding query failed or returned no data.")
+                print(f"Dapr binding query result format unexpected: {query_results}")
         else:
-            print("No embedding generated for RAG context.")
-
+            print(f"Dapr binding query failed or returned no data.")
     except Exception as e:
         print(f"An unexpected error occurred during RAG context retrieval via Dapr binding: {e}")
-
+    
     if rag_context:
         return "\n\n" + "\n\n".join(rag_context)
     return ""
@@ -160,7 +106,8 @@ def call_ollama(prompt: str, language: str) -> str:
             app_id=OLLAMA_DAPR_SERVICE_NAME,
             method_name='api/generate',
             data=json.dumps(payload),
-            http_verb='POST'
+            http_verb='POST',
+            timeout=600 # Timeout in seconds, we have a small LLM and low memory, so it requires some time to generate a response
         )
         # Print the response
         # print(resp.content_type, flush=True)
@@ -168,6 +115,7 @@ def call_ollama(prompt: str, language: str) -> str:
         # print(str(resp.status_code), flush=True)
         time.sleep(2)
         return response.text()
+
     except requests.exceptions.RequestException as e:
         return f"Error calling Ollama: {e}. Check Ollama server status and network."
 
@@ -180,25 +128,6 @@ def call_openai(prompt: str, language: str, use_rag: bool = False) -> str:
     #https://www.diagrid.io/blog/dapr-1-15-release-highlights
     # from dapr.clients import DaprClient
     # from dapr.clients.grpc._request import ConversationInput
-
-    # with DaprClient() as dapr_client:
-    #     inputs = [
-    #         ConversationInput(content="What's Dapr?", role='user', scrub_pii=True),
-    #         ConversationInput(content='Give a brief overview.', role='user', scrub_pii=True),
-    #     ]
-
-    #     metadata = {
-    #         'model': 'foo',
-    #         'key': 'authKey',
-    #         'cacheTTL': '10m',
-    #     }
-
-    #     response = d.converse_alpha1(
-    #         name='echo', inputs=inputs, temperature=0.7, context_id='chat-123', metadata=metadata
-    #     )
-
-    #     for output in response.outputs:
-    #         print(f'Result: {output.result}')
 
     if not DAPR_OPENAI_AI_COMPONENT_NAME:
         return "Dapr OpenAI AI component name not configured."
@@ -276,10 +205,12 @@ def process_prompt():
     rag_context = ""
 
     if llm_source == 'ollama_local':
-        print(f"Calling Ollama with RAG context for prompt: {user_prompt[:50]}...")
+        print(f"Calling Ollama with RAG context for prompt: {user_prompt[:50]}...", flush=True)
         rag_context = get_rag_context(user_prompt)
         final_prompt = f"{rag_context}\n\nUser Query: {user_prompt}" if rag_context else user_prompt
+        print(f"Final prompt for Ollama: {final_prompt[:500]}...", flush=True)
         llm_answer = call_ollama(final_prompt, language)
+        print(f"Calling Ollama with RAG context for prompt: {llm_answer[:500]}...", flush=True)
 
     elif llm_source == 'openai_local':
         print(f"Calling OpenAI (RAG) for prompt: {user_prompt[:50]}...")
@@ -294,26 +225,31 @@ def process_prompt():
     else:
         llm_answer = "Invalid LLM source selected."
 
+    llm_answer_dict = json.loads(llm_answer)
     return render_template('index.html',
                            user_prompt_value=user_prompt,
                            llm_source_value=llm_source,
                            language_value=language,
-                           llm_answer_value=llm_answer)
+                           llm_answer_value=llm_answer_dict["response"] if "response" in llm_answer_dict else llm_answer_dict.get("result", "No response from LLM."))
 
 @app.route('/save_feedback', methods=['POST'])
 def save_feedback():
     """
-    New endpoint to save feedback for good answers (4 or 5 stars) using Dapr Bindings.
+    New endpoint to save feedback for good answers only (4 or 5 stars) using Dapr Bindings.
     """
     data = request.get_json()
-    
+    print(data, flush=True)
     prompt = data.get('prompt')
+    print(prompt, flush=True)
     answer = data.get('answer')
+    print(answer, flush=True)
     rating = int(data.get('rating'))
-    llm_source = data.get('llm_source') # Get the LLM source from feedback
+    print(rating, flush=True)
+    language = data.get('language') # Get the LLM source from feedback
+    print(language, flush=True)
 
-    if not all([prompt, answer, rating, llm_source]):
-        return jsonify({"status": "error", "message": "Missing prompt, answer, rating, or LLM source."}), 400
+    if not all([prompt, answer, rating, language]):
+        return jsonify({"status": "error", "message": "Missing prompt, answer, rating, or language."}), 400
 
     # Only save answers with 4 or 5 stars
     if rating >= 4:
@@ -321,12 +257,12 @@ def save_feedback():
             # Use Dapr Bindings to insert into the good_answers table
             # PostgreSQL uses $1, $2, etc. for parameters in SQL.
             sql_insert_cmd = """
-            INSERT INTO good_answers (prompt, answer, llm_source, rating, timestamp)
+            INSERT INTO good_answers (prompt, answer, rating, timestamp, language)
             VALUES ($1, $2, $3, $4, $5);
             """
             # Parameters for the SQL insert
             # The Dapr binding expects parameters as a list
-            params = [prompt, answer, llm_source, rating, datetime.now().isoformat()]
+            params = [prompt, answer, rating, datetime.now().isoformat(), language]
 
             # Payload for Dapr invoke_binding operation 'exec'
             # 'exec' operation is for DML (INSERT, UPDATE, DELETE) statements
@@ -336,10 +272,11 @@ def save_feedback():
             }
 
             print(f"Invoking Dapr binding '{DAPR_BINDING_NAME}' with insert command...")
-            resp = dapr_client.invoke_binding(
+            dapr_client.invoke_binding(
                 binding_name=DAPR_BINDING_NAME,
                 operation='exec', # Use 'exec' for DML statements
-                data=json.dumps(payload).encode('utf-8')
+                data=json.dumps(payload).encode('utf-8'),
+                binding_metadata={'sql': sql_insert_cmd, 'params': json.dumps(params)} # Deprecated but often still needed for binding specific context
             )
 
             # If no exception was raised, assume success

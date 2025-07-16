@@ -47,7 +47,7 @@ spec:
         image: timescale/timescaledb-ha:pg17
         args:
           - -c
-          - ai.ollama_host=http://ollama-llm.ollama
+          - ai.ollama_host=http://ollama.ollama.svc.cluster.local
         ports:
         - name: pgvectorport
           containerPort: 5432

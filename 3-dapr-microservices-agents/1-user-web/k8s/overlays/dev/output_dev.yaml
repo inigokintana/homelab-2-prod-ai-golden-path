@@ -5,7 +5,7 @@ data:
   DB_NAME: postgres
   DB_PORT: "5432"
   DB_TABLE: dapr_web
-  OLLAMA_DAPR_SERVICE_NAME: ollama-llm.ollama
+  OLLAMA_DAPR_SERVICE_NAME: ollama-llm-dapr.ollama
   OLLAMA_EMBEDDING_MODEL: all-minilm
   OLLAMA_HOST: http://ollama.ollama.svc.cluster.local
   OLLAMA_MODEL: llama3.2:1b
@@ -111,7 +111,7 @@ metadata:
   name: pgdb-agents-connection
   namespace: agents
 scopes:
-- user-web
+- user-web-dapr
 - dapr-sdk-docs-scraper
 spec:
   metadata:

@@ -14,5 +14,5 @@ spec:
     - name: direction
       value: "input, output"
 scopes:
-  - user-web # This is the name of the Dapr application that will use this binding
+  - user-web-dapr # This is the name of the Dapr application that will use this binding
   - dapr-sdk-docs-scraper # This is the name of the Dapr application that will use this binding

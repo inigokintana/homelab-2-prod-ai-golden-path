@@ -2,7 +2,7 @@ CREATE TABLE good_answers (
     id SERIAL PRIMARY KEY,
     prompt TEXT NOT NULL,
     answer TEXT NOT NULL,
-    llm_source VARCHAR(50), -- To store which LLM (ollama_local, openai_local, openai_external) provided the answer
     rating INT NOT NULL,
-    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    timestamp TEXT NOT NULL, -- To store the timestamp of when the answer was saved
+    language VARCHAR(10) NOT NULL -- To store the language of the answer
 );

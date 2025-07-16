@@ -13,7 +13,7 @@ spec:
         name: ollama-llm
       annotations:
         dapr.io/enabled: "true"
-        dapr.io/app-id: "ollama-llm"
+        dapr.io/app-id: "ollama-llm-dapr"
         dapr.io/enable-api-logging: "true"
         dapr.io/app-port: "11434"
         dapr.io/sidecar-inject: "true"

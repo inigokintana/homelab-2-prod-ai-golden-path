@@ -221,7 +221,7 @@
 
         {% if llm_answer_value %} {# Only show feedback if an answer has been generated #}
         <div class="rating-group">
-            <label>Rate this answer:</label>
+            <label for="rating">Rate this answer:</label>
             <div class="rating">
                 <input type="radio" id="star5" name="rating" value="5" /><label for="star5" title="Excellent">★</label>
                 <input type="radio" id="star4" name="rating" value="4" /><label for="star4" title="Good">★</label>
@@ -238,15 +238,17 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const promptForm = document.getElementById('promptForm');
-            const llmAnswerTextarea = document.getElementById('llm_answer');
+            const promptForm = document.getElementById('user_prompt').value;
+            console.log(promptForm);
+            const llmAnswerTextarea = document.getElementById('llm_answer').value;
+            console.log(llmAnswerTextarea);
             const ratingInputs = document.querySelectorAll('input[name="rating"]');
-            const saveFeedbackBtn = document.getElementById('saveFeedbackBtn');
+            //const saveFeedbackBtn = document.getElementById('saveFeedbackBtn');
             const feedbackMessageDiv = document.getElementById('feedbackMessage');
 
             // Enable save button only if an answer is displayed and a rating is selected
             function toggleSaveButton() {
-                const answerPresent = llmAnswerTextarea.value.trim() !== "";
+                const answerPresent = llmAnswerTextarea.value!== "";
                 const ratingSelected = Array.from(ratingInputs).some(input => input.checked);
                 saveFeedbackBtn.disabled = !(answerPresent && ratingSelected);
             }
@@ -268,10 +270,13 @@
                     return;
                 }
 
-                const ratingValue = selectedRating.value;
+                
+                //const userPrompt = promptForm.value;
                 const userPrompt = document.getElementById('user_prompt').value;
-                const llmAnswer = llmAnswerTextarea.value;
-                const llmSource = document.querySelector('input[name="llm_source"]:checked').value;
+                //const llmAnswer = llmAnswerTextarea.value;
+                const llmAnswer = document.getElementById('llm_answer').value;
+                const ratingValue = selectedRating.value;
+                const languageValue = document.querySelector('input[name="language"]:checked').value;
 
                 // Send data to the new Flask endpoint
                 fetch('/save_feedback', {
@@ -280,10 +285,10 @@
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        prompt: user_prompt,
-                        answer: llm_answer,
+                        prompt: userPrompt,
+                        answer: llmAnswer,
                         rating: ratingValue,
-                        llm_source: llmSource // Also send the LLM source
+                        language: languageValue // Also send the language
                     })
                 })
                 .then(response => response.json())
