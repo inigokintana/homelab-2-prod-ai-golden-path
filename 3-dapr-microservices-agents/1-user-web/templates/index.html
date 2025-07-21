@@ -167,9 +167,9 @@
         <h1>MyHonestLLM Interface</h1>
 
         <div>
-            <label for="user_prompt">Enter your prompt (max 5000 characters):</label>
+            <label for="user_prompt">Enter your prompt in English * (max 5000 characters):</label>
             <textarea id="user_prompt" name="user_prompt" rows="10" maxlength="5000"
-                      placeholder="Type your prompt here..." required>{{ user_prompt_value }}</textarea>
+                      placeholder="Type your prompt here in English, base documents in RAG database are in english, so using other language affects heavily semantic search quality..." required>{{ user_prompt_value }}</textarea>
         </div>
 
         <fieldset class="option-group">
@@ -188,8 +188,8 @@
             </div> -->
         </fieldset>
 
-        <fieldset class="option-group">
-            <legend>Choose Answer Language:</legend>
+        <fieldset class="option-group"> 
+            <legend>Choose Answer Language, different LLMs will speak better some language, english preferred:</legend>
             <div>
                 <input type="radio" id="lang_english" name="language" value="english" {% if language_value == 'english' %}checked{% endif %} required>
                 <label for="lang_english">English</label>

@@ -10,7 +10,6 @@ data:
   OLLAMA_HOST: http://ollama.ollama.svc.cluster.local
   OLLAMA_MODEL: llama3.2:1b
   OLLAMA_PORT: "11434"
-  OPENAI_API_KEY: None
 kind: ConfigMap
 metadata:
   name: user-web-config
@@ -91,19 +90,24 @@ metadata:
   name: openai-llm-model
   namespace: agents
 spec:
-  metadata:
-  - name: key
-    value: mykey
-  - name: model
-    value: gpt-4-turbo
-  - name: cacheTTL
-    value: 10m
-  - name: scrubPII
-    value: "true"
-  - name: temperature
-    value: 0
   type: conversation.openai
   version: v1
+  metadata:
+  - name: key
+    secretKeyRef:
+      name: openai-api-key # The name of your K8s secret (e.g., 'my-openai-key')
+      key: dapr         # The key *within* that K8s secret (e.g., 'api-key') Created in https://platform.openai.com/api-keys
+  - name: model
+    value: gpt-4.1-nano
+    #value: gpt-4.1-nano-2025-04-14 # GPT-4.1 nano is the fastest, most cost-effective GPT-4.1 model.
+  - name: cacheTTL
+    value: 10m
+  # - name: scrubPII
+  #   value: "true" #Optional. Will obfuscate any sensitive information returning from the LLM
+  # - name: temperature
+  #   value: 0 # 0.5 // Optional. Optimizes for consistency (0) or creativity (1)
+scopes:
+  - user-web-dapr # This is the name of the Dapr application that will use
 ---
 apiVersion: dapr.io/v1alpha1
 kind: Component

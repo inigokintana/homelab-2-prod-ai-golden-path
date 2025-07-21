@@ -6,3 +6,5 @@ k8s
 .git
 #tilt
 start-time.txt
+# http
+http

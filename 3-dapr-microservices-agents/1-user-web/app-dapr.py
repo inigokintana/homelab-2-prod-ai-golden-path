@@ -13,11 +13,11 @@ from flask import Flask, render_template, request, jsonify # Import jsonify for 
 from dapr.clients import DaprClient 
 from dapr.clients.grpc._request import ConversationInput
 # --- END DAPR SDK IMPORTS ---
+import ast
 
 app = Flask(__name__)
 
 # --- LLM Configuration (from config map) ---
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 OLLAMA_HOST = os.getenv("OLLAMA_HOST","http://ollama.ollama.svc.cluster.local")
 OLLAMA_DAPR_SERVICE_NAME = os.getenv("OLLAMA_DAPR_SERVICE_NAME","ollama-llm-dapr.ollama")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL","llama3.2:1b") 
@@ -161,7 +161,7 @@ def call_openai(prompt: str, language: str, use_rag: bool = False) -> str:
         resp = dapr_client.converse_alpha1(
             name=DAPR_OPENAI_AI_COMPONENT_NAME,
             inputs=inputs,
-            temperature=0.7,  # Adjust temperature as needed
+            temperature=0,  # Adjust temperature as needed - 0 is honest, 1 is creative
             # context_id='chat-123',  # Optional context ID for conversation tracking
             metadata=metadata  # Additional metadata for the AI model
         )
@@ -213,24 +213,31 @@ def process_prompt():
         print(f"Calling Ollama with RAG context for prompt: {llm_answer[:500]}...", flush=True)
 
     elif llm_source == 'openai_local':
-        print(f"Calling OpenAI (RAG) for prompt: {user_prompt[:50]}...")
+        print(f"Calling OpenAI (RAG) for prompt: {user_prompt[:50]}...", flush=True)
         rag_context = get_rag_context(user_prompt)
         final_prompt = f"{rag_context}\n\nUser Query: {user_prompt}" if rag_context else user_prompt
         llm_answer = call_openai(final_prompt, language, use_rag=True)
-
-    # elif llm_source == 'openai_external':
-    #     print(f"Calling OpenAI (External) for prompt: {user_prompt[:50]}...")
-    #     llm_answer = call_openai(user_prompt, language, use_rag=False)
-
+        print(type(llm_answer), flush=True)
+        #print(f"Calling OpenAI with RAG context for prompt: {llm_answer[:500]}...", flush=True)
+        print("RAW OPENAI LLM RESPONSE:", repr(llm_answer), flush=True)
     else:
         llm_answer = "Invalid LLM source selected."
-
-    llm_answer_dict = json.loads(llm_answer)
-    return render_template('index.html',
+    # Ollama works
+    if llm_source == 'ollama_local':
+        llm_answer_dict = json.loads(llm_answer)
+        return render_template('index.html',
                            user_prompt_value=user_prompt,
                            llm_source_value=llm_source,
                            language_value=language,
                            llm_answer_value=llm_answer_dict["response"] if "response" in llm_answer_dict else llm_answer_dict.get("result", "No response from LLM."))
+    # OpenAI error
+    elif llm_source == 'openai_local':
+        #llm_answer_dict = json.loads(llm_answer)
+        return render_template('index.html',
+                           user_prompt_value=user_prompt,
+                           llm_source_value=llm_source,
+                           language_value=language,
+                           llm_answer_value=ast.literal_eval(repr(llm_answer)) if isinstance(llm_answer, str) else llm_answer.get("result", "No response from LLM."))
 
 @app.route('/save_feedback', methods=['POST'])
 def save_feedback():

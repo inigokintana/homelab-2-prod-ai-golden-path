@@ -2,17 +2,27 @@ Steps:
 
 1) Prompt -> embbed all-minilm
 2) RAG database SAME encoding all-minilm in vectorizer 
+We can not use OpenAI to create prompt embedding with our RAG database because OpenAI does not support all-minilm encoding
 3) SQL comparison with semantic search
 UNION with several tables
 dapr_web + dapr_docs+ github MCR + 6) steps saved
 4) pass search results to Ollama or OpenAI LLM
 5) Get LLM answer
 6) Save: prompts, embedded, answers, timestamps and user
+***
 
+Do it manually and do not generate YAML not to get the OpenAI key exposed: 
+1) k -n agents create secret generic openai-api-key --from-literal=dapr=<your-openai-api-key-here>
+secret/openai-api-key created  
+2) openai-llm-component refers to openai-api-key 
+3) Python code uses dapr sdk to get secret that could be in K8s, AWS secret or wherever
+The container needs propper permisions K8S SA or SA with AWS IAM ROLE or AZuRE AD
 
 ***
-6 )Future:
-My local LLM reponds with this dictionary structure. Inside my browser. I know that it should be enought to show the response part to user. But I want to known how professional services use the other parts to give a better service:
+6) Future:
+My local LLM reponds with this dictionary structure. Inside my browser. I know that it should be enough to show the response part to user. But I want to known how professional services use the other parts to give a better service:
+
+Save values in DB -> Prometheus
 
 {
  "model":"llama3.2:1b",

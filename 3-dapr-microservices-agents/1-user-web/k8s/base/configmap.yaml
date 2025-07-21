@@ -12,7 +12,6 @@ data:
   DAPR_BINDING_NAME: "pgdb-agents-connection"
 
   # WIP-This must be saved in a secret of some sort, not in a configmap
-  OPENAI_API_KEY: "None"
   OLLAMA_HOST: "http://ollama.ollama.svc.cluster.local"
   OLLAMA_PORT: "11434" # svc in 80
   OLLAMA_DAPR_SERVICE_NAME: "ollama-llm-dapr.ollama"
