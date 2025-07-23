@@ -1,4 +1,5 @@
-homelab-2-prod-golden-path-AI-electrical-consume-weather
+homelab-2-prod-ai-golden-path
+*******************************
 
 This is a golden path (opinionated shortcut) to explore AI from local homelab to PROD using OSS for technological independence and local LLM for privacy. We explore concepts like AI agents, RAG and LLM using OSS technologies like Linux, Opentofu, microk8s, DAPR, Ollama, TimescaleDB & Vectorizer, Flask and Python.
 
@@ -6,177 +7,87 @@ AI agents RAG LLM Linux microk8s DAPR Ollama TimescaleDB Vectorizer Flask Python
 
 
 1) Infra: linux + mikrok8s  k8s infra services (dapr + TimescaleDB + Vectorizer + Ollama )
-	wsl2
-		shell + k
-	aws
-		opentofu
-	ovh
-		opentofu
+	wsl2: shell + kubectl
+	aws: opentofu: providers AWS + k8s + helm - minimize shell to have inmutable
+	ovh: opentofu: providers AWS + k8s + helm - minimize shell to have inmutable
 
 2) Mandatory k8s services (dapr + TimescaleDB + Vectorizer + Ollama )
 
+3) dapr microservices agents
 
-3) Git directories
-	scrappers -> insert/update into TimescaleDB & vectorizer = modular RAG
-	scrapper 
-		https://scrapeops.io/python-web-scraping-playbook/build-python-web-scraping-framework/
-		https://pypi.org/project/scrapera/
-		
-		template
-			.venv
-			Tiltfile
-			Dockerfile
-			requirements.txt
-			*.py
-			deploy 
-			components
-				1h cron - random vs rule good-id and quantity
-				timescaleDB
-			docs
-			db - downloaded csv dataset - https://www.kaggle.com/datasets/nicholasjhana/energy-consumption-generation-prices-and-weather 
+	3.2) Injection agent
+		dapr web ingestion
+			k8s cronjob
+			scrapera -> vectorized
 			
-		next-day-forecast (scrapper needed)
-		rules
-		rules-doc-markitdown (optional) or pgai https://github.com/timescale/pgai/blob/main/docs/vectorizer/document-embeddings.md
-		previous-electrical-recommendations
-		electrical-rules-frontend
-			model
-			controller
-			view
-
-	questionsagents
-		question1agent -> get RAG fron Database and encoded question into OpenAI/Ollama
-		questions-frontend
-			model
-			controller
-			view
-
-Optional k8s services 
-
-	gitOps - ArgoCD
-	
-	MLOps - MLFlow
+	3.1) User web Flask
+			Ollama
+			OpenAI
+			Save good results + save more details + prometheus
+			
+			Languages not very well supported
+			Honesty - good data quality dependency
+			
+			Enhance logging Zipkin Prometheus
+			
+	3.3) Agents and MCP
+		https://www.cncf.io/blog/2025/03/12/announcing-dapr-ai-agents/
+		Data Science How to build MCP host Ai-agents
+		https://github.com/dapr/dapr-agents/issues/50
+		https://github.com/dapr/dapr-agents/tree/main/cookbook/mcp
+		https://www.diagrid.io/blog/the-agentic-spectrum-why-its-not-agents-vs-workflows
+		https://www.diagrid.io/dapr-university#dapr-agents
 		
+4) Optional k8s services 
+	gitOps - ArgoCD
+	MLOps - MLFlow or Kubeflow or both
 	monitoring- no Dapr
 		zipkin
 		Prometheus
 
 
 ***
-Optional dataset DVDrental and scrapera imdb
-
-You are a python developer. Do a simple python program that gets film user reviews from IMDB  using scrapera https://github.com/DarshanDeshpande/Scrapera/blob/master/scrapera/text/imdb.py
-
-pip install git+https://github.com/DarshanDeshpande/Scrapera.git
-
-from scrapera.text.imdb import IMDb
-
-def fetch_imdb_reviews(imdb_id, max_reviews=10):
-    """
-    Fetch user reviews from IMDb for a given IMDb ID.
-    
-    Args:
-        imdb_id (str): The IMDb ID of the film (e.g., 'tt0111161' for The Shawshank Redemption).
-        max_reviews (int): Maximum number of reviews to fetch.
-
-    Returns:
-        List of review texts.
-    """
-    imdb_scraper = IMDb()
-    reviews = imdb_scraper.get_reviews(imdb_id)
-    
-    print(f"\nTop {max_reviews} Reviews for IMDb ID: {imdb_id}\n" + "-"*50)
-    for idx, review in enumerate(reviews[:max_reviews], 1):
-        print(f"\nReview #{idx}:\n{review}\n")
-
-if __name__ == "__main__":
-    # Example: The Shawshank Redemption
-    movie_imdb_id = "tt0111161"
-    fetch_imdb_reviews(movie_imdb_id, max_reviews=5)
-
-wikipedia dataset
-*****
-How does temperature affect peak demand?" or "Summarize consumption trends in hot months."
-
-Taking into account tomorrow's weather forecast, about 30 days of historical data around same day and best practice rules 
-what recommendations can you make regarding the consumption forecast and more cost optimized generation method? 
-
-Task Type							Best Tool
-Forecast consumption				ML
-Correlation analysis				ML
-Generating human-readable reports	LLM
-Answering user queries				LLM
-Anomaly detection					ML
-Exploratory insight discovery		LLM (with summaries or embeddings)
-
-****
-EJIe, Aberto Y, Lanbide, OSS involved, NAIR (Navarra Artificial Intelligence Research), lankide ohiak, lagunak, senide
-LinkedIn premium
-
-
-**
-
-Dapr doc
-
-import hashlib
-from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, Text
-from sqlalchemy.dialects.postgresql import insert
-from scrappera import scrape
-
-# --- Configuration ---
-BASE_URL = "https://docs.dapr.io/"
-DB_URL = "postgresql+psycopg2://username:password@localhost:5432/your_database"
-TABLE_NAME = "dapr_docs_chunks"
-CHUNK_SIZE = 500  # words
-
-# --- Text chunking ---
-def chunk_text(text, size=CHUNK_SIZE):
-    words = text.split()
-    return [' '.join(words[i:i+size]) for i in range(0, len(words), size)]
-
-# --- Database setup ---
-engine = create_engine(DB_URL)
-metadata = MetaData()
-
-docs_table = Table(
-    TABLE_NAME, metadata,
-    Column("id", Integer, primary_key=True, autoincrement=True),
-    Column("url", String, nullable=False),
-    Column("chunk_hash", String, nullable=False, unique=True),
-    Column("text", Text, nullable=False),
-    Column("embedding", String, nullable=True),  # Placeholder, computed via pgAI trigger
-)
-
-metadata.create_all(engine)
-
-# --- Store chunk and trigger vectorization ---
-def save_chunk(conn, url, chunk):
-    chunk_hash = hashlib.sha256(chunk.encode()).hexdigest()
-    stmt = insert(docs_table).values(
-        url=url,
-        chunk_hash=chunk_hash,
-        text=chunk
-    ).on_conflict_do_nothing()
-    conn.execute(stmt)
-
-# --- Scraping and storing pipeline ---
-def main():
-    print("Scraping documentation...")
-    pages = scrape(BASE_URL, recursive=True)
-    print(f"Scraped {len(pages)} pages.")
-
-    with engine.begin() as conn:
-        for page in pages:
-            if not page.text_content():
-                continue
-            chunks = chunk_text(page.text_content())
-            for chunk in chunks:
-                save_chunk(conn, page.url, chunk)
-            print(f"Stored {len(chunks)} chunks from {page.url}")
-
-    print("Done. You can now run vectorization in TimescaleDB.")
-
-if __name__ == "__main__":
-    main()
-
-discord channel https://discord.com/channels/778680217417809931/@home
+Presentation
+	Explain objective
+		Easy entry level to AI
+		POC 
+		Golden path for lab to PROD
+		
+	Demo
+		RAG with Local LLM or OpenAI
+		
+	Concepts behind this demo
+		Why 
+			k8s : multiplatform cloud & on-premise - microk8s network not kind
+			Dapr:  multiplatform cloud & on-premise - Zipkin & prometheus
+			Pg pgai vectorizer: ease data engineers live, batch vs stream ingestion
+			Ollama: access to models locally, from small models to big ones
+				 be aware <RAG ENCODING> must be supported by OLLAMA
+				Flask web where user can write prompt and receive and answer based on local RAG and local Ollama LLM or OpenAI
+				Parameters: 
+				Honest, PII, 
+			Different LLM models we choose OSS encoding and LLM model
+			Flask: 
+			Tech independance: USA gorila Trump
+			tilt: skips docker containers deploy directly to K8S
+			Opentofu: immutable state Terraform vs OpenTofu
+			
+	Install
+		Wsl2: c:\Users\<user>\.wslconfig
+			memory=10GB processors=4 swap=2GB size=80
+		AWS: 12GB RAM
+		OVH:
+		
+	Probable next steps - use cases
+		install - Play
+		Have your own RAG database - if not in my DB RAG go to OpenAI
+		Agents MCP 
+		From lab to PROD - Tech change personal view
+		gitOps - ArgoCD
+		MLOps - MLFlow or Kubeflow or both
+		
+	Q&A - contribute
+		share your experience or thoughts
+		any help with your lab
+		but do not be a hater
+	

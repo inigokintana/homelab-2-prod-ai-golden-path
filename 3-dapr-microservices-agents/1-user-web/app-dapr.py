@@ -225,7 +225,7 @@ def process_prompt():
     # Ollama works
     if llm_source == 'ollama_local':
         llm_answer_dict = json.loads(llm_answer)
-        return render_template('index.html',
+        return render_template('index.html',    
                            user_prompt_value=user_prompt,
                            llm_source_value=llm_source,
                            language_value=language,

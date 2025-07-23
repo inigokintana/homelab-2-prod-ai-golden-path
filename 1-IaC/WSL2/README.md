@@ -8,17 +8,6 @@ TOC
     - [1.4 - Microk8s web dashboard using service NodePort](#14---microk8s-web-dashboard-using-service-nodeport)
     - [1.5 - Linux alias](#15---linux-alias)
   - [2 - Troubleshooting](#2---troubleshooting)
-## 1 - Install WSL2 & microK8s install
-Follow steps in the link [WSL2 install](https://microk8s.io/docs/install-wsl2)
-
-### 1.1 - In case you are behind company proxy
-```
-wsl --update --web-download 
-wsl -l -v
-wsl --install -d Ubuntu-22.04
-```
-
-### 1.2 - Checking everything is right:
 
 ## 1 - Install WSL2 & microK8s install
 Follow steps in the link [WSL2 install](https://microk8s.io/docs/install-wsl2)
