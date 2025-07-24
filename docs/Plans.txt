@@ -90,4 +90,46 @@ Presentation
 		share your experience or thoughts
 		any help with your lab
 		but do not be a hater
-	
+		
+**************
+LinkedIn - SLM - like 24/jul/2025
+
+SLM
+LMs are overkill for 80% of business tasks. Enter SLMs:
+
+Most companies are burning cash on GPT-4 when a specialized Small Language Model would do the job better, faster, and cheaper.
+
+Here's the architecture difference:
+
+Traditional LLMs: Simple linear pipeline that processes everything with maximum resources. Like using a Ferrari for grocery runs.
+
+Smart SLMs: Optimized parallel processing with compact tokenization, task-specific embeddings, and model quantization. Built for edge deployment and real-world efficiency.
+
+Real Cost Comparison:
+- GPT-4: $30/million input tokens, $60/million output tokens
+- GPT-4.1-nano: $0.10/million input, $0.40/million output (OpenAI's cheapest)
+- Llama 3.2 (1B): $0.03-0.05/million tokens
+- Custom fine-tuned SLMs can cost even less
+
+Where SLMs Win:
+SLMs excel at customer service handling 90% of repetitive queries, document classification, sentiment analysis, code completion for specific languages, and IoT/edge device applications.
+
+Where LLMs Still Rule:
+LLMs remain superior for creative writing, complex reasoning tasks, multi-domain applications, and research assistance.
+
+Real Business Case:
+Switching from GPT-4 to a specialized SLM for invoice processing:
+- Latency: 2s → 0.3s
+- Cost: Over 90% reduction
+- Accuracy: Improved with domain-specific training
+
+Quick Start Guide:
+1. Identify repetitive tasks in your workflow
+2. Calculate current LLM costs
+3. Test open-source SLMs (Phi-3, TinyLlama, Llama 3.2)
+4. Fine-tune on your specific data
+5. Deploy locally or on edge
+
+The future isn't about bigger models. It's about smarter, specialized ones that run anywhere.
+
+Over to you: What task are you overpaying LLMs to handle?	
