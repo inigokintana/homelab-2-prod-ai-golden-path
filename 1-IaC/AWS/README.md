@@ -152,13 +152,13 @@ output "instance_private_ip" {
 1. **Initialize OpenTofu**: In your terminal, navigate to the directory where the `.tf` file is located and run:
 
    ```bash
-   opentofu init
+   tofu init
    ```
 
 2. **Apply the Configuration**: To create the resources, run:
 
    ```bash
-   opentofu apply
+   tofu apply
    ```
 
    Confirm the action when prompted.

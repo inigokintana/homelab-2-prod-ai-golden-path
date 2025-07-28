@@ -1,6 +1,12 @@
 #!/bin/bash 
-# set -e
-# set -x
+set -e
+set -x
+
+# kubectl alias function
+# This function allows you to use `k` as an alias for `kubectl` commands
+k() {
+    sudo microk8s kubectl "$@"
+}
 
 #################################
 # 0 - SSH key
@@ -47,10 +53,19 @@ sudo usermod -aG docker $USER
 # kubectl is the command-line tool for interacting with Kubernetes clusters.
 # It allows users to create, modify, and manage Kubernetes resources using a command-line interface (CLI).
 #########
-# Download the latest binary
-curl -LO "https://dl.k8s.io/release/$(curl -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-# Install it
-sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+sudo apt-get update
+# apt-transport-https may be a dummy package; if so, you can skip that package
+sudo apt-get install -y apt-transport-https ca-certificates curl gnupg
+# If the folder `/etc/apt/keyrings` does not exist, it should be created before the curl command, read the note below.
+sudo mkdir -p -m 755 /etc/apt/keyrings
+curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.33/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+sudo chmod 644 /etc/apt/keyrings/kubernetes-apt-keyring.gpg # allow unprivileged APT programs to read this keyring
+# Download the public signing key for the Kubernetes package repositories
+echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.33/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
+sudo chmod 644 /etc/apt/sources.list.d/kubernetes.list
+#Install
+sudo apt-get update
+sudo apt-get install -y kubectl
 # Verify
 kubectl version --client
 
@@ -73,18 +88,19 @@ sudo microk8s status --wait-ready
 # microk8s add-on offer easy way to enable dns dashboard storage 
 # registry -> (LLM images can be heavy)
 # rbac -> (Role-based access control) needed by dapr and other like argoCD
-sudo microk8s enable dns dashboard storage registry rbac
+sudo microk8s enable dns dashboard hostpath-storage registry rbac
 # kubectl alias k
 # aliases in Ubuntu WSL2
+#alias k="sudo microk8s kubectl"
 echo "# microk8s alias" >> ~/.bashrc
-echo "alias k="sudo microk8s kubectl"" >> ~/.bashrc
+echo "alias k='sudo microk8s kubectl'" >> ~/.bashrc
 # execute the bashrc to get the alias working
-source  ~/.bashrc
+#source  ~/.bashrc
 k get nodes -o wide
 # return to home directory
 cd ~
 # make microk8s credentials available
-mkdir .kube
+# mkdir .kube
 sudo cp -p /var/snap/microk8s/current/credentials/client.config .kube/config
 sudo chown $USER:microk8s .kube/config
 # This command starts a proxy to the Kubernetes Dashboard UI in the background
@@ -92,7 +108,7 @@ sudo chown $USER:microk8s .kube/config
 sudo microk8s dashboard-proxy &
 # Because we enabled rbac in the microk8s cluster, we need to create a service account and cluster role binding for the microk8s dashboard
 k create serviceaccount kubernetes-admin-dashboard -n kube-system --dry-run=client -o yaml > sa-kubernetes-admin-dashboard.yaml
-k apply-f ./sa-kubernetes-admin-dashboard.yaml
+k apply -f ./sa-kubernetes-admin-dashboard.yaml
 k create clusterrolebinding kubernetes-admin-dashboard --clusterrole=cluster-admin --serviceaccount=kube-system:kubernetes-admin-dashboard -n kube-system --dry-run=client -o yaml > rb-kubernetes-admin-dashboard.yaml
 k apply -f ./rb-kubernetes-admin-dashboard.yaml
 # Since k 1.18 service account token is not created by default
@@ -109,12 +125,13 @@ echo $TOKEN >> token-kubernetes-admin-dashboard.yaml
 # It provides APIs that simplify the development of microservices by abstracting away the complexities of distributed systems.
 
 # See Dapr releases in https://github.com/dapr/cli/releases
-if [ `cat /proc/cpuinfo | grep -i "model name" | uniq | grep -i Intel` ] || [ `cat /proc/cpuinfo | grep -i "model name" | uniq | grep -i AMD` ]
+ARCH=$(uname -m)
+if [[ "$ARCH" == "x86_64" ]]
   then
     echo "Detected Intel or AMD architecture"
     wget https://github.com/dapr/cli/releases/download/v1.15.0/dapr_linux_amd64.tar.gz
     tar -xvzf dapr_linux_amd64.tar.gz
-elif [ `cat /proc/cpuinfo | grep -i "model name" | uniq | grep -i ARM` ] 
+elif [[ "$ARCH" == "aarch64" ]] 
   then
     echo "Detected ARM architecture"
     wget https://github.com/dapr/cli/releases/download/v1.15.0/dapr_linux_arm64.tar.gz
@@ -127,6 +144,7 @@ sudo mv dapr /usr/local/bin/dapr
 
 # Install dapr in k8s with redis and zipkin 
 dapr init --kubernetes --dev
+# in case uninstall is needed "dapr uninstall --kubernetes --all"
 k get pods -n dapr-system
 k get pods -n default
 # Get status of Dapr services from Kubernetes
@@ -134,90 +152,90 @@ dapr status -k
 #Dapr provides a dashboard to monitor and interact with the services running in the cluster. To access the dashboard, run:
 dapr dashboard -k -p 9999 &
 
-# ########################################
-# # 5 - Install mandatory k8s services
-# ########################################
+########################################
+# 5 - Install mandatory k8s services
+########################################
 
-# ## 5.1 - Install Ollama arm/Intel/AMD architecture - Preload Encodding: all-minilm & LLM: llama3.2:1b
-# ########
-# cd ~/homelab-2-prod-ai-golden-path/2-mandatory-k8s-services/ollama/deploy
-# # Ollama is a platform for running and sharing large language models (LLMs) locally.
-# # It provides a simple command-line interface (CLI) for running LLMs and a web-based UI for managing and sharing models.
-# # Ollama is designed to be easy to use and provides a variety of pre-trained models that can be run locally.
-# k apply -f namespace.yaml
-# k apply -f deployment.yaml
-# k apply -f service.yaml
-# # Port forwarding to check the http status of Ollama locally or from broser
-# kubectl -n ollama port-forward service/ollama 11434:80 &
-# k get pod -n ollama
-# # Test the Ollama API locally
-# # k -n ollama exec -it pod/ollama-59476b6f4c-rmjkz -- sh
-# curl http://localhost:11434/api/generate -d '{
-#   "model": "llama3.2:1b",
-#   "prompt": "What is Kubernetes?",
-#   "stream": false,
-#   "raw": true
-#   }'
+## 5.1 - Install Ollama arm/Intel/AMD architecture - Preload Encodding: all-minilm & LLM: llama3.2:1b
+########
+cd ~/homelab-2-prod-ai-golden-path/2-mandatory-k8s-services/ollama/deploy
+# Ollama is a platform for running and sharing large language models (LLMs) locally.
+# It provides a simple command-line interface (CLI) for running LLMs and a web-based UI for managing and sharing models.
+# Ollama is designed to be easy to use and provides a variety of pre-trained models that can be run locally.
+k apply -f namespace.yaml
+k apply -f deployment.yaml
+k apply -f service.yaml
+# Port forwarding to check the http status of Ollama locally or from broser
+kubectl -n ollama port-forward service/ollama 11434:80 &
+k get pod -n ollama
+# Test the Ollama API locally
+# k -n ollama exec -it pod/ollama-59476b6f4c-rmjkz -- sh
+curl http://localhost:11434/api/generate -d '{
+  "model": "llama3.2:1b",
+  "prompt": "What is Kubernetes?",
+  "stream": false,
+  "raw": true
+  }'
 
-# ## 5.2 - Install Timescale DB with pgvector extension and vectorizer for LLM RAG
-# ########
-# cd ~/homelab-2-prod-ai-golden-path/2-mandatory-k8s-services/timescaleDB/deploy
-# k  apply -f namespace.yaml
-# k  apply -f data-pv.yaml
-# k  apply -f data-pvc.yaml
-# k  apply -f secret-pgvector.yaml
-# # vectorizer to ollama connection config is done with k8s DNS no Dapr naming - to check with Dapr naming app_id='ollama-llm.ollama' 
-# # post http://localhost:3500/v1.0/invoke/ollama-llm.ollama/method/chat
-# k  apply -f deployment.yaml
-# k  apply -f service.yaml
-# # be able to connect to postgres from Ubuntu 22.04 locally
-# kubectl -n pgvector port-forward service/pgvector 15432:5432 &
+## 5.2 - Install Timescale DB with pgvector extension and vectorizer for LLM RAG
+########
+cd ~/homelab-2-prod-ai-golden-path/2-mandatory-k8s-services/timescaleDB/deploy
+k  apply -f namespace.yaml
+k  apply -f data-pv.yaml
+k  apply -f data-pvc.yaml
+k  apply -f secret-pgvector.yaml
+# vectorizer to ollama connection config is done with k8s DNS no Dapr naming - to check with Dapr naming app_id='ollama-llm.ollama' 
+# post http://localhost:3500/v1.0/invoke/ollama-llm.ollama/method/chat
+k  apply -f deployment.yaml
+k  apply -f service.yaml
+# be able to connect to postgres from Ubuntu 22.04 locally
+kubectl -n pgvector port-forward service/pgvector 15432:5432 &
 
-# ##############################################
-# # 6- Install dapr microservices agents in K8s
-# ##############################################
-# # microk8s kubectl get pods -n container-registry
-# # docker tag myapp:latest localhost:32000/myapp:latest
-# # docker push localhost:32000/myapp:latest
-# # or
-# # microk8s.docker build -t localhost:32000/myapp:latest .
-# # microk8s.docker push localhost:32000/myapp:latest
+##############################################
+# 6- Install dapr microservices agents in K8s
+##############################################
+# microk8s kubectl get pods -n container-registry
+# docker tag myapp:latest localhost:32000/myapp:latest
+# docker push localhost:32000/myapp:latest
+# or
+# microk8s.docker build -t localhost:32000/myapp:latest .
+# microk8s.docker push localhost:32000/myapp:latest
 
-# ## 6.1 - psql database
-# ##### 
-# kubectl -n pgvector port-forward service/pgvector 15432:5432  &
-# # psql password
-# echo "localhost:15432:postgres:postgres:pgvector" > ~/.pgpass
-# chmod 600 ~/.pgpass
-# ## NOTE
-# ## This password was created in deployment.yaml & secret-pgvector.yaml
-# ## in  ./homelab-2-prod-ai-golden-path/2-mandatory-k8s-services/timescaleDB/deploy
+## 6.1 - psql database
+##### 
+kubectl -n pgvector port-forward service/pgvector 15432:5432  &
+# psql password
+echo "localhost:15432:postgres:postgres:pgvector" > ~/.pgpass
+chmod 600 ~/.pgpass
+## NOTE
+## This password was created in deployment.yaml & secret-pgvector.yaml
+## in  ./homelab-2-prod-ai-golden-path/2-mandatory-k8s-services/timescaleDB/deploy
 
-# ## 6.2 - Injection Agent Web Dapr
-# ########
-# # create database table & create the vectorized table
-# cd ~/homelab-2-prod-ai-golden-path/3-dapr-microservices-agents/2-injection-agent-web-dapr
-# psql -U postgres -d postgres -h localhost -p 15432 < .sql/create-table.sql
-# psql -U postgres -d postgres -h localhost -p 15432 < .sql/create-vectorized-table.sql
-# # create local registry image -  build the image with microk8s docker
-# microk8s.docker build -t localhost:32000/injection-agent-web-dapr:latest .
-# # push the image to the local registry
-# microk8s.docker push localhost:32000/injection-agent-web-dapr:latest    
-# # deploy the application into mikrok8s - create Dev environment
-# k apply -f ./k8s/overlays/dev/output_dev.yaml
+## 6.2 - Injection Agent Web Dapr
+########
+# create database table & create the vectorized table
+cd ~/homelab-2-prod-ai-golden-path/3-dapr-microservices-agents/2-injection-agent-web-dapr
+psql -U postgres -d postgres -h localhost -p 15432 < .sql/create-table.sql
+psql -U postgres -d postgres -h localhost -p 15432 < .sql/create-vectorized-table.sql
+# create local registry image -  build the image with microk8s docker
+microk8s.docker build -t localhost:32000/injection-agent-web-dapr:latest .
+# push the image to the local registry
+microk8s.docker push localhost:32000/injection-agent-web-dapr:latest    
+# deploy the application into mikrok8s - create Dev environment
+k apply -f ./k8s/overlays/dev/output_dev.yaml
 
-# ## 6.3 - User Web Dapr Agent
-# ########
-# # create database table & create the vectorized table
-# cd ~/homelab-2-prod-ai-golden-path/3-dapr-microservices-agents/2-injection-agent-web-dapr/sql
-# psql -U postgres -d postgres -h localhost -p 15432 < .sql/create-table.sql
-# psql -U postgres -d postgres -h localhost -p 15432 < .sql/create-vectorized-table.sql
-# # create local registry image -  build the image with microk8s docker
-# microk8s.docker build -t localhost:32000/user-web-dapr:latest .
-# # push the image to the local registry
-# microk8s.docker push localhost:32000/user-web-dapr:latest    
-# # deploy the application into mikrok8s - create Dev environment
-# k apply -f ./k8s/overlays/dev/output_dev.yaml
+## 6.3 - User Web Dapr Agent
+########
+# create database table & create the vectorized table
+cd ~/homelab-2-prod-ai-golden-path/3-dapr-microservices-agents/2-injection-agent-web-dapr/sql
+psql -U postgres -d postgres -h localhost -p 15432 < .sql/create-table.sql
+psql -U postgres -d postgres -h localhost -p 15432 < .sql/create-vectorized-table.sql
+# create local registry image -  build the image with microk8s docker
+microk8s.docker build -t localhost:32000/user-web-dapr:latest .
+# push the image to the local registry
+microk8s.docker push localhost:32000/user-web-dapr:latest    
+# deploy the application into mikrok8s - create Dev environment
+k apply -f ./k8s/overlays/dev/output_dev.yaml
 
 #####################################
 # 7 - Optional tools and utilities
@@ -227,13 +245,23 @@ dapr dashboard -k -p 9999 &
 # Opentofu is an open-source alternative to Terraform, a popular infrastructure as code (IaC) tool.
 # Opentofu is designed to be compatible with Terraform configurations and provides a similar command-line interface
 ######
+# tooling
+sudo apt-get install -y apt-transport-https ca-certificates curl gnupg
 # Add the OpenTofu APT repo
-curl -fsSL https://pkgs.opentofu.org/opentofu-opentofu/gpg.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/opentofu.gpg > /dev/null
-echo "deb [signed-by=/etc/apt/trusted.gpg.d/opentofu.gpg] https://pkgs.opentofu.org/opentofu-opentofu/deb/ all main" | \
-  sudo tee /etc/apt/sources.list.d/opentofu.list
+sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://get.opentofu.org/opentofu.gpg | sudo tee /etc/apt/keyrings/opentofu.gpg >/dev/null
+curl -fsSL https://packages.opentofu.org/opentofu/tofu/gpgkey | sudo gpg --no-tty --batch --dearmor -o /etc/apt/keyrings/opentofu-repo.gpg >/dev/null
+sudo chmod a+r /etc/apt/keyrings/opentofu.gpg /etc/apt/keyrings/opentofu-repo.gpg
+# create the OpenTofu source list
+echo \
+  "deb [signed-by=/etc/apt/keyrings/opentofu.gpg,/etc/apt/keyrings/opentofu-repo.gpg] https://packages.opentofu.org/opentofu/tofu/any/ any main
+deb-src [signed-by=/etc/apt/keyrings/opentofu.gpg,/etc/apt/keyrings/opentofu-repo.gpg] https://packages.opentofu.org/opentofu/tofu/any/ any main" | \
+  sudo tee /etc/apt/sources.list.d/opentofu.list > /dev/null
+sudo chmod a+r /etc/apt/sources.list.d/opentofu.list
+
 # Install OpenTofu
 sudo apt update
-sudo apt-get install -y opentofu
+sudo apt-get install -y tofu
 # Verify
 tofu version
 
@@ -253,12 +281,8 @@ kustomize version
 # Tilt is a tool for managing Kubernetes applications.
 # It provides a way to build, deploy, and manage applications in Kubernetes using a simple configuration file.
 #########
-# Add Tilt’s APT repo
-curl -fsSL https://repo.tilt.dev/apt.gpg | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/tilt-archive.gpg
-echo "deb [signed-by=/etc/apt/trusted.gpg.d/tilt-archive.gpg] https://repo.tilt.dev/apt stable main" | sudo tee /etc/apt/sources.list.d/tilt.list
 # Install Tilt
-sudo apt update
-sudo apt-get install -y tilt
+curl -fsSL https://raw.githubusercontent.com/tilt-dev/tilt/master/scripts/install.sh | bash
 # Verify
 tilt version
 

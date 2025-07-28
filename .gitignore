@@ -14,6 +14,9 @@
 #!8-BigData-AI/final/
 # Additionally, if there are files inside 'final' that should be included, you need to unignore those as well
 #!8-BigData-AI/final/**
+1-IaC/AWS/opentofu/.terraform
+1-IaC/AWS/opentofu/.terraform.lock.hcl
+1-IaC/AWS/opentofu/terraform.tfstate*
 3-dapr-microservices-agents/2-injection-agent-web-dapr/.venv
 3-dapr-microservices-agents/2-injection-agent-web-dapr/dapr_docs_web/*
 !3-dapr-microservices-agents/2-injection-agent-web-dapr/dapr_docs_web/dapr_docs_web/spiders/

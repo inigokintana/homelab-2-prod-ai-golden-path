@@ -24,7 +24,7 @@ data "aws_vpc" "default" {
 # Fetch the first available subnet in the default VPC
 data "aws_subnet" "default_subnet" {
   vpc_id = data.aws_vpc.default.id
-  availability_zone = "eu-south-2a"  # Choose the AZ where you want to create the instance
+  availability_zone = "eu-south-2a"  # Spain - Choose the AZ where you want to create the instance
 }
 
 # get manually created key pair in order to create the ec2 instance
@@ -84,7 +84,7 @@ resource "aws_security_group" "allow_ssh_k8s" {
 
 resource "aws_instance" "ubuntu2204" {
   ami           = "ami-0586af70ffaea9a74" # ARM 64b
-  instance_type = "t4g.small"
+  instance_type = "t4g.small" # 2 vCPUs and 2 GiB of memory
   #subnet_id     = data.aws_subnet.default_subnet.id
   key_name      =  data.aws_key_pair.tf.key_name # got above
   security_groups = [aws_security_group.allow_ssh_k8s.name]

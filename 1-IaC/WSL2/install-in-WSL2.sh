@@ -1,6 +1,12 @@
 #!/bin/bash 
-# set -e
-# set -x
+set -e
+set -x
+
+# kubectl alias function
+# This function allows you to use `k` as an alias for `kubectl` commands
+k() {
+    sudo microk8s kubectl "$@"
+}
 
 ###################
 # 1 - update ubuntu
@@ -40,10 +46,19 @@ sudo usermod -aG docker $USER
 # kubectl is the command-line tool for interacting with Kubernetes clusters.
 # It allows users to create, modify, and manage Kubernetes resources using a command-line interface (CLI).
 #########
-# Download the latest binary
-curl -LO "https://dl.k8s.io/release/$(curl -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-# Install it
-sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+sudo apt-get update
+# apt-transport-https may be a dummy package; if so, you can skip that package
+sudo apt-get install -y apt-transport-https ca-certificates curl gnupg
+# If the folder `/etc/apt/keyrings` does not exist, it should be created before the curl command, read the note below.
+sudo mkdir -p -m 755 /etc/apt/keyrings
+curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.33/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+sudo chmod 644 /etc/apt/keyrings/kubernetes-apt-keyring.gpg # allow unprivileged APT programs to read this keyring
+# Download the public signing key for the Kubernetes package repositories
+echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.33/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
+sudo chmod 644 /etc/apt/sources.list.d/kubernetes.list
+#Install
+sudo apt-get update
+sudo apt-get install -y kubectl
 # Verify
 kubectl version --client
 
@@ -66,18 +81,19 @@ sudo microk8s status --wait-ready
 # microk8s add-on offer easy way to enable dns dashboard storage 
 # registry -> (LLM images can be heavy)
 # rbac -> (Role-based access control) needed by dapr and other like argoCD
-sudo microk8s enable dns dashboard storage registry rbac
+sudo microk8s enable dns dashboard hostpath-storage registry rbac
 # kubectl alias k
 # aliases in Ubuntu WSL2
+#alias k="sudo microk8s kubectl"
 echo "# microk8s alias" >> ~/.bashrc
-echo "alias k="sudo microk8s kubectl"" >> ~/.bashrc
+echo "alias k='sudo microk8s kubectl'" >> ~/.bashrc
 # execute the bashrc to get the alias working
-source  ~/.bashrc
+#source  ~/.bashrc
 k get nodes -o wide
 # return to home directory
 cd ~
 # make microk8s credentials available
-mkdir .kube
+# mkdir .kube
 sudo cp -p /var/snap/microk8s/current/credentials/client.config .kube/config
 sudo chown $USER:microk8s .kube/config
 # This command starts a proxy to the Kubernetes Dashboard UI in the background
@@ -85,7 +101,7 @@ sudo chown $USER:microk8s .kube/config
 sudo microk8s dashboard-proxy &
 # Because we enabled rbac in the microk8s cluster, we need to create a service account and cluster role binding for the microk8s dashboard
 k create serviceaccount kubernetes-admin-dashboard -n kube-system --dry-run=client -o yaml > sa-kubernetes-admin-dashboard.yaml
-k apply-f ./sa-kubernetes-admin-dashboard.yaml
+k apply -f ./sa-kubernetes-admin-dashboard.yaml
 k create clusterrolebinding kubernetes-admin-dashboard --clusterrole=cluster-admin --serviceaccount=kube-system:kubernetes-admin-dashboard -n kube-system --dry-run=client -o yaml > rb-kubernetes-admin-dashboard.yaml
 k apply -f ./rb-kubernetes-admin-dashboard.yaml
 # Since k 1.18 service account token is not created by default
@@ -102,12 +118,13 @@ echo $TOKEN >> token-kubernetes-admin-dashboard.yaml
 # It provides APIs that simplify the development of microservices by abstracting away the complexities of distributed systems.
 
 # See Dapr releases in https://github.com/dapr/cli/releases
-if [ `cat /proc/cpuinfo | grep -i "model name" | uniq | grep -i Intel` ] || [ `cat /proc/cpuinfo | grep -i "model name" | uniq | grep -i AMD` ]
+ARCH=$(uname -m)
+if [[ "$ARCH" == "x86_64" ]]
   then
     echo "Detected Intel or AMD architecture"
     wget https://github.com/dapr/cli/releases/download/v1.15.0/dapr_linux_amd64.tar.gz
     tar -xvzf dapr_linux_amd64.tar.gz
-elif [ `cat /proc/cpuinfo | grep -i "model name" | uniq | grep -i ARM` ] 
+elif [[ "$ARCH" == "aarch64" ]] 
   then
     echo "Detected ARM architecture"
     wget https://github.com/dapr/cli/releases/download/v1.15.0/dapr_linux_arm64.tar.gz
@@ -120,6 +137,7 @@ sudo mv dapr /usr/local/bin/dapr
 
 # Install dapr in k8s with redis and zipkin 
 dapr init --kubernetes --dev
+# in case uninstall is needed "dapr uninstall --kubernetes --all"
 k get pods -n dapr-system
 k get pods -n default
 # Get status of Dapr services from Kubernetes
@@ -220,13 +238,23 @@ k apply -f ./k8s/overlays/dev/output_dev.yaml
 # Opentofu is an open-source alternative to Terraform, a popular infrastructure as code (IaC) tool.
 # Opentofu is designed to be compatible with Terraform configurations and provides a similar command-line interface
 ######
+# tooling
+sudo apt-get install -y apt-transport-https ca-certificates curl gnupg
 # Add the OpenTofu APT repo
-curl -fsSL https://pkgs.opentofu.org/opentofu-opentofu/gpg.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/opentofu.gpg > /dev/null
-echo "deb [signed-by=/etc/apt/trusted.gpg.d/opentofu.gpg] https://pkgs.opentofu.org/opentofu-opentofu/deb/ all main" | \
-  sudo tee /etc/apt/sources.list.d/opentofu.list
+sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://get.opentofu.org/opentofu.gpg | sudo tee /etc/apt/keyrings/opentofu.gpg >/dev/null
+curl -fsSL https://packages.opentofu.org/opentofu/tofu/gpgkey | sudo gpg --no-tty --batch --dearmor -o /etc/apt/keyrings/opentofu-repo.gpg >/dev/null
+sudo chmod a+r /etc/apt/keyrings/opentofu.gpg /etc/apt/keyrings/opentofu-repo.gpg
+# create the OpenTofu source list
+echo \
+  "deb [signed-by=/etc/apt/keyrings/opentofu.gpg,/etc/apt/keyrings/opentofu-repo.gpg] https://packages.opentofu.org/opentofu/tofu/any/ any main
+deb-src [signed-by=/etc/apt/keyrings/opentofu.gpg,/etc/apt/keyrings/opentofu-repo.gpg] https://packages.opentofu.org/opentofu/tofu/any/ any main" | \
+  sudo tee /etc/apt/sources.list.d/opentofu.list > /dev/null
+sudo chmod a+r /etc/apt/sources.list.d/opentofu.list
+
 # Install OpenTofu
 sudo apt update
-sudo apt-get install -y opentofu
+sudo apt-get install -y tofu
 # Verify
 tofu version
 
@@ -246,12 +274,8 @@ kustomize version
 # Tilt is a tool for managing Kubernetes applications.
 # It provides a way to build, deploy, and manage applications in Kubernetes using a simple configuration file.
 #########
-# Add Tilt’s APT repo
-curl -fsSL https://repo.tilt.dev/apt.gpg | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/tilt-archive.gpg
-echo "deb [signed-by=/etc/apt/trusted.gpg.d/tilt-archive.gpg] https://repo.tilt.dev/apt stable main" | sudo tee /etc/apt/sources.list.d/tilt.list
 # Install Tilt
-sudo apt update
-sudo apt-get install -y tilt
+curl -fsSL https://raw.githubusercontent.com/tilt-dev/tilt/master/scripts/install.sh | bash
 # Verify
 tilt version
 
