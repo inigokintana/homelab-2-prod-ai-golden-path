@@ -65,15 +65,21 @@ sudo snap install microk8s --classic --channel=1.32/stable
 sudo microk8s status --wait-ready
 # microk8s add-on offer easy way to enable dns dashboard storage 
 # registry -> (LLM images can be heavy)
-# rbac -> (Role-based access control) needed by dapr and argoCD
+# rbac -> (Role-based access control) needed by dapr and other like argoCD
 sudo microk8s enable dns dashboard storage registry rbac
 # kubectl alias k
 # aliases in Ubuntu WSL2
-echo "# microk8s alias" >> /home/ubuntu/.bashrc
-echo "alias k="sudo microk8s kubectl"" >> /home/ubuntu/.bashrc
+echo "# microk8s alias" >> ~/.bashrc
+echo "alias k="sudo microk8s kubectl"" >> ~/.bashrc
 # execute the bashrc to get the alias working
-source /home/ubuntu/.bashrc
+source  ~/.bashrc
 k get nodes -o wide
+# return to home directory
+cd ~
+# make microk8s credentials available
+mkdir .kube
+sudo cp -p /var/snap/microk8s/current/credentials/client.config .kube/config
+sudo chown $USER:microk8s .kube/config
 # This command starts a proxy to the Kubernetes Dashboard UI in the background
 # it will be available at https://127.0.0.1:10443
 sudo microk8s dashboard-proxy &
@@ -91,7 +97,7 @@ echo $TOKEN >> token-kubernetes-admin-dashboard.yaml
 ##########################
 # 4 - Install Dapr in WSL2
 ##########################
-## Install Dapr arm architecture - change version file when needed
+## Install Dapr various CPUs architectures (INTEL & AMD or ARM) - change version file when needed
 # Dapr is a portable, event-driven runtime that makes it easy for developers to build resilient, microservices-based applications.
 # It provides APIs that simplify the development of microservices by abstracting away the complexities of distributed systems.
 
@@ -111,12 +117,7 @@ else
     exit 1
 fi
 sudo mv dapr /usr/local/bin/dapr
-# return to home directory
-cd ~
-# make microk8s credentials available
-mkdir .kube
-sudo cp -p /var/snap/microk8s/current/credentials/client.config .kube/config
-sudo chown ubuntu:microk8s .kube/config
+
 # Install dapr in k8s with redis and zipkin 
 dapr init --kubernetes --dev
 k get pods -n dapr-system
@@ -275,12 +276,15 @@ sudo apt install -y code
 ################
 # 8 - ports info
 ################
+echo "
+--Ports info--
 # Microk8s Dashboard: https://localhost:10443
 # Ollama: http://localhost:11434 - k -n ollama port-forward service/ollama 11434:80
 # Ollama API: http://localhost:11434/api/generate
 # Ollama Dashboard: http://localhost:11434/ollama
 # PGVector: psql - k -n pgvector port-forward service/pgvector 15432:5432 &
 # Dapr Dashboard: http://localhost:9999
-# Dapr API: http://localhost:3500/v1.0/invoke/ollama-llm.ollama/method/chat
-# Flask user.web 5000
-# Tilt : http://localhost:10350
+# Flask user web: http://localhost:5000/ - k -n agents port-forward service/user-web-dapr 5000:80
+# Optional: Tilt : http://localhost:10350 
+--Ports info--
+"
