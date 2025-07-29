@@ -12,21 +12,23 @@ We explore concepts like AI agents, RAG and LLM using OSS technologies like Linu
 
 **WIP**
 
+**youtube VIDEO** WIP
+
+**[Presentation slides](./docs/Presentation-homelab-2-prod-ai-golden-path.odp)** WIP
+
 ```
 ├── 1-IaC: we choose kubernetes microK8S implementation as the neutral vendor platform to run differents POCs
 │   ├── AWS: TF/OpenTofu scripts to run it in AWS free tier t4g Ubuntu
 │   └── WSL2: steps/shell script how to install it locally in WSL2 - Ubuntu 22
 │   └──OVH: TF/OpenTofu scripts to run it in OVH Ubuntu European provider
-
 ├── 2-mandatory-k8s-services: mandatory services to install in K8S
 │   ├── dapr: distributed application runtime to standarized microservices and agent implementation
 │   ├── ollama: local LLM offering an API
 │   ├── timescaleDB: timesaries database based on postgreSQL with vector database support
 │   └── pgaiVectorizer: provides continuous embedding update on vector database
-
 ├── 3-dapr-microservices-agents: microservices and agents inserting data into database and passing it trought to LLM
-
 └── 4-optional-k8s-services: optional services to install in K8S
+└── Docs
 ``` 
 # 2 - Install
 
@@ -52,7 +54,6 @@ All done with CNCF neutral vendor OSS technology.
         - see [Dapr AI Agents Blog](https://www.cncf.io/blog/2025/03/12/announcing-dapr-ai-agents/)
     - Open Telemetry, see [incubating status](https://www.cncf.io/projects/opentelemetry/)
     - Opentofu is at [sandbox maturity](https://www.cncf.io/projects/opentofu/) level on CNCF.
-    - ArgoCD, see [graduated status](https://www.cncf.io/projects/argo/)
     - ...
 - More on [CNCF projects status](https://www.cncf.io/project-metrics/) or [CNCF ecosystem landscape](https://landscape.cncf.io/)
 
@@ -179,13 +180,14 @@ I love Gitlab OSS vs SaaS product and commercial strategy and although I have co
 - Installing Gitlab OSS requires quite a lot of RAM
 - The microservices we are going to install are simple POCs with not real need of CI quality requirements
 
-## 3.11 - Why ArgoCD?
-ArgoCD is installed inside microk8s and can be linked into a git repo so whatever changes we make to the code is deployed inside K8S.
+## 3.11 - Why Tilt?
+Kubernetes for Prod, Tilt for Dev,
 
-Ideally, we are going to incrementally add more and more features and best practices to our POC microservices, so, it would be nice be to have a CD (continuous deployment) just after we push whatever code or config change into our microservices git repo.
+[Tilt](https://github.com/tilt-dev/tilt) is OSS and part of [CNCF ecosystem landscape](https://landscape.cncf.io/). 
+
+Tilt makes you work directly into Kubernetes to ease developement. Tilt automates all the steps from a code change to a new process: watching files, building container images, and bringing your environment up-to-date. Think docker build && kubectl apply or docker-compose up.
 
 ## 3.12 - Which data?
-- Why electrical comsumption data linked with weather? I wanted to relate weather forecast on the performance of any business results and [this curated historical dataset](https://www.kaggle.com/datasets/nicholasjhana/energy-consumption-generation-prices-and-weather ) linking electrical consuption with weather came into my search. I was rather searching for a retail sales - weather related datasets but I could not find a good/curated dataset.
-- Optional data WIP
-    - DVDRental data and and scrapera imdb
-    - cosmopedia or wikipedia
+- It is hard to find a good/curated dataset.
+- Finally, I decided to scrap updated data from web to chunk it and vectorize it in our own database.
+- Adapt the data to your business case.

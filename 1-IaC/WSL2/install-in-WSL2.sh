@@ -2,8 +2,10 @@
 set -e
 set -x
 
-# kubectl alias function
+###################
+# 0 - kubectl alias function
 # This function allows you to use `k` as an alias for `kubectl` commands
+###################
 k() {
     sudo microk8s kubectl "$@"
 }
