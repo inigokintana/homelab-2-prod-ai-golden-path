@@ -77,6 +77,11 @@ In short, Kubernetes is designed to be flexible, extensible, and cloud-agnostic,
 
 You can **start small and install microk8s under your PC WSL2/Ubuntu or AWS free tier machine and later on move those projects into [microk8s HA environment](https://www.cncf.io/online-programs/microk8s-ha-under-the-hood-kubernetes-with-dqlite/), EKS, AKS, GKS or OpenShift**. 
 
+Unlike Kind or minikube, **mikroK8s** is intended for production workloads as an alternative to Openshifts. MicroK8s simplifies developer work and can be run in a cluster:
+  - [microk8s Ubuntu 22.04 install](https://help.clouding.io/hc/en-us/articles/13572430913180-How-to-Setup-Lightweight-Kubernetes-with-MicroK8s-and-Snap-on-Ubuntu-22-04)
+  - [microk8s cluster](https://microk8s.io/docs/aws-user-guide)
+  - [cluster upgrade](https://microk8s.io/docs/upgrade-cluster)
+  
 This **option is specially valuable** when corporate close minded IT/SOC/SecOps/platform teams does not provide confortable lab/dev environments and developers are left in **"very restricted"** or **"do everything by your own" schenarios**. **DevOps culture is not the same in every organization**.
 
 

@@ -13,4 +13,13 @@ We are providing:
 - All the kubectl apply commands in steps 5 and 6, install them with [OpenTofu Kubectl Provider](https://search.opentofu.org/provider/opentofu/kubernetes/v2.0.0)
 
 
-Now, you can **go into any subfolder** of your convenience. Happy instgallation!!!
+**Shell script content:**
+- Updates the package lists 
+- Install mandatory tools like docker, kubectl and git and clone the repoSnap.
+- Installs MicroK8s  
+- Install Dapr
+- Install mandatory k8s services for this POC - Ollama, PostgreSQL, pg AI
+- Install dapr microservices agents in K8s:data ingestor with scraper and Flask user-web
+- Install optional tools: Opentofu, Kustomize and Visual Studio Code
+
+Now, you can **go into any subfolder** of your convenience. Happy installation!!!

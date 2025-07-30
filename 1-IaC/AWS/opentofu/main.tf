@@ -1,20 +1,6 @@
 provider "aws" {
-  region = "eu-south-2"
+  region = "eu-south-2" # Spain, change it to you own convinience
 }
-
-# resource "aws_vpc" "myvpc" {
-#   cidr_block = "10.0.0.0/16"
-#   tags = {
-#     Name = "myvpc"
-#   }
-# }
-# resource "aws_subnet" "mysubnet" {
-#   vpc_id     = aws_vpc.myvpc.id
-#   cidr_block = "10.0.1.0/24"
-#   tags = {
-#     Name = "mysubnet"
-#   }
-# }
 
 # Fetch the default VPC
 data "aws_vpc" "default" {
@@ -30,9 +16,8 @@ data "aws_subnet" "default_subnet" {
 # get manually created key pair in order to create the ec2 instance
 data "aws_key_pair" "tf" {
   #key_name = var.ec2_key_name
-  # key pair created manually in AWS console
-  #  To just output the public part of a private key: openssl rsa -in mykey.pem -pubout > mykey.pub
-  key_name = "mk8u22"
+  # key pair created manually in AWS console or with AWS CLI
+  key_name = "aipoc"
   filter {
     name   = "tag:Component"
     values = ["opentofu"]
@@ -41,7 +26,7 @@ data "aws_key_pair" "tf" {
 
 variable "ec2_user_public_rsa" {
   type    = string
-  default = "ssh-rsa MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA6UpJ9oCiyS+3cK+1s0pV1gHkfAcIH9cxnXmMtC0Uf4+DiRJliZ0VPFlRqLVDhewoSytyC63mkZL5RCkZZ1Lg1FgabdSDljjIeBQxFq2FNwmVktRqoToFkTb/Qy/yYXApg4EHT8hBc2NaILOjPuX+Cx4/e7JSe6JVn9X6qSbVPI1hnva746UQFcVHhe4zV3gsJ60gEkGrFex26DTMnmDsXt/+501P1bV8cAAyo6x4T+ZW5RIS3jKPUdqaptXnmoat5w3tFqy9EhJUC4rcPXCdfsvDwfCPConazN2lv3Xiqiv2zPQp3sq4eiEL6G+I5F7Arwo4Aq4VEKbGCfiArSMMVwIDAQAB"
+  default = "ssh-rsa MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA65SCWxubb5qi5iHcVq8e5DIDmkAGeYYtNvO2w2BywOoMiQprbzbBEnar9vGJbIZIAbYjW0e/rzvVSbu0e5mzOvRcm8nmsgr2dp53EW/KUJG/6GhBlIzJLjA5ItV92kDZRLYOuhSuurrpo8x/uycLixrsNp4BP66etPRsL3QgEQ1rVSbLRDxwzSYJB64fELTqZRkREqoTA/mfuE2/BLu6t2zV9Zo6a5G2ZyXQlCo/lG3/WngriB2D9FAZ6WvqYmip0AIdXTOrDxYtJe8KPEOiv0uGpjbwhKB1CsBkrq3bF7qZhBWQ6WZB3Q7XWPchSmgk2hgMIjY3aySWO4B0+qK8xwIDAQAB"
 }
 
 
@@ -84,7 +69,7 @@ resource "aws_security_group" "allow_ssh_k8s" {
 
 resource "aws_instance" "ubuntu2204" {
   ami           = "ami-0586af70ffaea9a74" # ARM 64b
-  instance_type = "t4g.small" # 2 vCPUs and 2 GiB of memory
+  instance_type = "t4g.xlarge" # (4 vCPU -16 GB RAM) change it to your own convinience
   #subnet_id     = data.aws_subnet.default_subnet.id
   key_name      =  data.aws_key_pair.tf.key_name # got above
   security_groups = [aws_security_group.allow_ssh_k8s.name]
@@ -95,8 +80,6 @@ resource "aws_instance" "ubuntu2204" {
   user_data = file("./userdata.sh")
   tags = {
     Name = "ubuntu2204-microk8s"
-
-    
     Opentofu   = "true"
     Env = "playground"
   }

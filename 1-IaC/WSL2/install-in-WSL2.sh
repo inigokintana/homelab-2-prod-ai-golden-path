@@ -140,6 +140,7 @@ sudo mv dapr /usr/local/bin/dapr
 # Install dapr in k8s with redis and zipkin 
 dapr init --kubernetes --dev
 # in case uninstall is needed "dapr uninstall --kubernetes --all"
+sleep 180 # wait for Dapr to be ready
 k get pods -n dapr-system
 k get pods -n default
 # Get status of Dapr services from Kubernetes

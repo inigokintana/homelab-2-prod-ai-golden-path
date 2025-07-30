@@ -22,10 +22,11 @@ swap=2GB          # Allocates 2 GB swap file
 # For 80GB, use 80.
 size=80
 ```
+
 # 2 - Execute shell script
 
 Login into WSL2 Ubuntu-22.04, [download this shell script](https://github.com/inigokintana/homelab-2-prod-ai-golden-path/blob/main/1-IaC/WSL2/install-in-WSL2.sh) and execute it:
-- The shell script is self explainatory and fully commented, take a look
+- The shell script is self explainatory and fully commented, take a look to it
 - Download: wget https://github.com/inigokintana/homelab-2-prod-ai-golden-path/blob/main/1-IaC/WSL2/install-in-WSL2.sh
 - Change permission: chmod 744 install-in-WSL2.sh
 - Execute: ./install-in-WSL2.sh
