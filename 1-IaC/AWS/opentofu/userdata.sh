@@ -211,9 +211,9 @@ sleep 5 # wait for port-forward to be ready
 
 ## 6.1 - psql database
 ##### 
-k -n pgvector port-forward service/pgvector 15432:5432  &
-sleep 5 # wait for port-forward to be ready
-# psql password
+# psqlclient and  password
+sudo apt-get install -y postgresql-client-common
+sudo apt-get install -y postgresql-client
 echo "localhost:15432:postgres:postgres:pgvector" > /home/ubuntu/.pgpass
 chmod 600 /home/ubuntu/.pgpass
 ## NOTE
@@ -224,12 +224,12 @@ chmod 600 /home/ubuntu/.pgpass
 ########
 # create database table & create the vectorized table
 cd /home/ubuntu/homelab-2-prod-ai-golden-path/3-dapr-microservices-agents/2-injection-agent-web-dapr
-psql -U postgres -d postgres -h localhost -p 15432 < .sql/create-table.sql
-psql -U postgres -d postgres -h localhost -p 15432 < .sql/create-vectorized-table.sql
+psql -U postgres -d postgres -h localhost -p 15432 < ./sql/create-table.sql
+psql -U postgres -d postgres -h localhost -p 15432 < ./sql/create-vectorized-table.sql
 # create local registry image -  build the image with microk8s docker
-microk8s.docker build -t localhost:32000/injection-agent-web-dapr:latest .
+docker build -t localhost:32000/injection-agent-web-dapr:latest .
 # push the image to the local registry
-microk8s.docker push localhost:32000/injection-agent-web-dapr:latest    
+docker push localhost:32000/injection-agent-web-dapr:latest    
 # deploy the application into mikrok8s - create Dev environment
 k apply -f ./k8s/overlays/dev/output_dev.yaml
 
@@ -237,12 +237,12 @@ k apply -f ./k8s/overlays/dev/output_dev.yaml
 ########
 # create database table & create the vectorized table
 cd /home/ubuntu/homelab-2-prod-ai-golden-path/3-dapr-microservices-agents/2-injection-agent-web-dapr/sql
-psql -U postgres -d postgres -h localhost -p 15432 < .sql/create-table.sql
-psql -U postgres -d postgres -h localhost -p 15432 < .sql/create-vectorized-table.sql
+psql -U postgres -d postgres -h localhost -p 15432 < ./sql/create-table.sql
+psql -U postgres -d postgres -h localhost -p 15432 < ./sql/create-vectorized-table.sql
 # create local registry image -  build the image with microk8s docker
-microk8s.docker build -t localhost:32000/user-web-dapr:latest .
+docker build -t localhost:32000/user-web-dapr:latest .
 # push the image to the local registry
-microk8s.docker push localhost:32000/user-web-dapr:latest    
+docker push localhost:32000/user-web-dapr:latest    
 # deploy the application into mikrok8s - create Dev environment
 k apply -f ./k8s/overlays/dev/output_dev.yaml
 

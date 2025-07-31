@@ -3,7 +3,7 @@
 
 This is something we have [mentioned before](https://github.com/inigokintana/homelab-2-prod-ai-golden-path/tree/main?tab=readme-ov-file#38---why-timescaledb).
 
-**Note** if you do not want to use TimescaleDB and you can install pgai Vectorizer [into any postgres db](https://www.timescale.com/blog/pgai-vectorizer-now-works-with-any-postgres-database?utm_source=timescaledb&utm_medium=youtube&utm_campaign=yt-channel-2023&utm_content=timescale-blog), [here how](https://github.com/timescale/pgai/blob/released/docs/install/source.md) and [create the vectorizer worker](https://github.com/timescale/pgai)
+**Note** if you do not want to use TimescaleDB still you can install pgai Vectorizer [into any postgres db](https://www.timescale.com/blog/pgai-vectorizer-now-works-with-any-postgres-database?utm_source=timescaledb&utm_medium=youtube&utm_campaign=yt-channel-2023&utm_content=timescale-blog), [here how](https://github.com/timescale/pgai/blob/released/docs/install/source.md) and [create the vectorizer worker](https://github.com/timescale/pgai)
 
 
 # 2 - Technical prerequisites

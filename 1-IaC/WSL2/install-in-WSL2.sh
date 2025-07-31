@@ -211,9 +211,9 @@ sleep 5 # wait for port-forward to be ready
 
 ## 6.1 - psql database
 ##### 
-k -n pgvector port-forward service/pgvector 15432:5432  &
-sleep 5 # wait for port-forward to be ready
 # psql password
+sudo apt-get install -y postgresql-client-common
+sudo apt-get install -y postgresql-client
 echo "localhost:15432:postgres:postgres:pgvector" > ~/.pgpass
 chmod 600 ~/.pgpass
 ## NOTE

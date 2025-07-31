@@ -15,6 +15,9 @@
     More info https://github.com/timescale/pgai
  */
 
+CREATE EXTENSION IF NOT EXISTS ai CASCADE;
+
+
   SELECT ai.create_vectorizer(     
     'dapr_web'::regclass,     
     destination => 'dapr_web_embeddings',     
