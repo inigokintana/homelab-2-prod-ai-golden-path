@@ -167,7 +167,9 @@ k apply -f namespace.yaml
 k apply -f deployment.yaml
 k apply -f service.yaml
 # Port forwarding to check the http status of Ollama locally or from broser
-kubectl -n ollama port-forward service/ollama 11434:80 &
+sleep 180 # wait for Ollama to be ready
+k -n ollama port-forward service/ollama 11434:80 &
+sleep 5 # wait for port-forward to be ready
 k get pod -n ollama
 # Test the Ollama API locally
 # k -n ollama exec -it pod/ollama-59476b6f4c-rmjkz -- sh
@@ -183,14 +185,19 @@ curl http://localhost:11434/api/generate -d '{
 cd /home/ubuntu/homelab-2-prod-ai-golden-path/2-mandatory-k8s-services/timescaleDB/deploy
 k  apply -f namespace.yaml
 k  apply -f data-pv.yaml
-k  apply -f data-pvc.yaml
+k  apply -f data-pv-claim.yaml
+# we need to change permisson in the mount point
+sudo mkdir -p /mnt/pgdata
+sudo chown ubuntu:ubuntu /mnt/pgdata
 k  apply -f secret-pgvector.yaml
 # vectorizer to ollama connection config is done with k8s DNS no Dapr naming - to check with Dapr naming app_id='ollama-llm.ollama' 
 # post http://localhost:3500/v1.0/invoke/ollama-llm.ollama/method/chat
 k  apply -f deployment.yaml
+sleep 180 # wait for TimescaleDB to be ready
 k  apply -f service.yaml
 # be able to connect to postgres from Ubuntu 22.04 locally
-kubectl -n pgvector port-forward service/pgvector 15432:5432 &
+k -n pgvector port-forward service/pgvector 15432:5432 &
+sleep 5 # wait for port-forward to be ready
 
 ##############################################
 # 6- Install dapr microservices agents in K8s
@@ -204,7 +211,8 @@ kubectl -n pgvector port-forward service/pgvector 15432:5432 &
 
 ## 6.1 - psql database
 ##### 
-kubectl -n pgvector port-forward service/pgvector 15432:5432  &
+k -n pgvector port-forward service/pgvector 15432:5432  &
+sleep 5 # wait for port-forward to be ready
 # psql password
 echo "localhost:15432:postgres:postgres:pgvector" > /home/ubuntu/.pgpass
 chmod 600 /home/ubuntu/.pgpass

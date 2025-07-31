@@ -98,10 +98,9 @@ tofu version
 
 ## 3.4 - Check userdata shell script output and re-execute partially if needed
 
-Once the EC2 instance has been initialized (all status checks are passed), you can verify what the user_data script did in the log file located at /var/log/cloud-init-output.log.
+While the EC2 instance is been initialized or after (all status checks are passed), you can verify what the user_data script did in the log file located at "tail -f /var/log/cloud-init-output.log".
 
-If something fails, you may re-execute it partially or totally if needed
-
+If something fails, you may re-execute it partially or totally if needed, userdata.sh file is in this git repo but you can also see it inside AWS instance with "sudo cat /var/lib/cloud/instance/user-data.txt"
 
 
 # 4 - Breakdown of the Configuration chosen in Opentofu
