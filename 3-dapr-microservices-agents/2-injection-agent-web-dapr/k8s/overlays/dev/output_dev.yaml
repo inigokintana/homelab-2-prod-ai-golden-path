@@ -1,4 +1,9 @@
 apiVersion: v1
+kind: Namespace
+metadata:
+  name: agents
+---
+apiVersion: v1
 data:
   DAPR_BINDING_NAME: pgdb-agents-connection
   DB_HOST: pgvector.pgvector.svc.cluster.local
