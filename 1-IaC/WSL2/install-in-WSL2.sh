@@ -146,6 +146,7 @@ sudo mv dapr /usr/local/bin/dapr
 # Install dapr in k8s with redis and zipkin 
 dapr init --kubernetes --dev
 # in case uninstall is needed "dapr uninstall --kubernetes --all"
+echo "Waiting for Dapr to be ready..."
 sleep 180 # wait for Dapr to be ready
 k get pods -n dapr-system
 k get pods -n default
@@ -168,7 +169,8 @@ k apply -f namespace.yaml
 k apply -f deployment.yaml
 k apply -f service.yaml
 # Port forwarding to check the http status of Ollama locally or from broser
-sleep 240 # wait for Ollama to be ready
+echo "Waiting for Ollama to be ready..."
+sleep 180 # wait for Ollama to be ready
 k -n ollama port-forward service/ollama 11434:80 &
 sleep 5 # wait for port-forward to be ready
 k get pod -n ollama
@@ -195,6 +197,8 @@ k  apply -f secret-pgvector.yaml
 # post http://localhost:3500/v1.0/invoke/ollama-llm.ollama/method/chat
 k  apply -f deployment.yaml
 k  apply -f service.yaml
+echo "Waiting for TimescaleDB and Vectorizer to be ready..."
+sleep 180 # wait for TimescaleDB to be ready
 # be able to connect to postgres from Ubuntu 22.04 locally
 k -n pgvector port-forward service/pgvector 15432:5432 &
 sleep 5 # wait for port-forward to be ready
@@ -202,6 +206,7 @@ sleep 5 # wait for port-forward to be ready
 ##############################################
 # 6- Install dapr microservices agents in K8s
 ##############################################
+# two options:
 # microk8s kubectl get pods -n container-registry
 # docker tag myapp:latest localhost:32000/myapp:latest
 # docker push localhost:32000/myapp:latest
@@ -220,29 +225,41 @@ chmod 600 ~/.pgpass
 ## This password was created in deployment.yaml & secret-pgvector.yaml
 ## in  ./homelab-2-prod-ai-golden-path/2-mandatory-k8s-services/timescaleDB/deploy
 
-## 6.2 - Injection Agent Web Dapr
+## 6.2 - Install pgAI in postgres
+########
+# pgAI is a PostgreSQL extension that provides AI capabilities, such as vectorization and embedding, for PostgreSQL databases.
+# See -- https://github.com/timescale/pgai/issues/858  --
+# TimescaleDB images are released periodically and do not mantain pgAI version inside the image.
+# Additionally,  before pgAI 0.10 we need to "CREATE EXTENSION IF NOT EXISTS ai CASCADE;" but 
+# after pgAI 0.10 it is intalled outside the database with python this way
+sudo apt-get install -y python3-pip
+pip install pgai
+export PATH=$PATH:/home/$USER/.local/bin
+pgai install -d postgres://postgres:pgvector@localhost:15432/postgres # IN PROD you should change postgres password later
+
+## 6.3 - Injection Agent Web Dapr
 ########
 # create database table & create the vectorized table
 cd ~/homelab-2-prod-ai-golden-path/3-dapr-microservices-agents/2-injection-agent-web-dapr
 psql -U postgres -d postgres -h localhost -p 15432 < .sql/create-table.sql
 psql -U postgres -d postgres -h localhost -p 15432 < .sql/create-vectorized-table.sql
 # create local registry image -  build the image with microk8s docker
-microk8s.docker build -t localhost:32000/injection-agent-web-dapr:latest .
+docker build -t localhost:32000/injection-agent-web-dapr:latest .
 # push the image to the local registry
-microk8s.docker push localhost:32000/injection-agent-web-dapr:latest    
+docker push localhost:32000/injection-agent-web-dapr:latest    
 # deploy the application into mikrok8s - create Dev environment
 k apply -f ./k8s/overlays/dev/output_dev.yaml
 
-## 6.3 - User Web Dapr Agent
+## 6.4 - User Web Dapr Agent
 ########
 # create database table & create the vectorized table
 cd ~/homelab-2-prod-ai-golden-path/3-dapr-microservices-agents/2-injection-agent-web-dapr/sql
 psql -U postgres -d postgres -h localhost -p 15432 < .sql/create-table.sql
 psql -U postgres -d postgres -h localhost -p 15432 < .sql/create-vectorized-table.sql
 # create local registry image -  build the image with microk8s docker
-microk8s.docker build -t localhost:32000/user-web-dapr:latest .
+docker build -t localhost:32000/user-web-dapr:latest .
 # push the image to the local registry
-microk8s.docker push localhost:32000/user-web-dapr:latest    
+docker push localhost:32000/user-web-dapr:latest    
 # deploy the application into mikrok8s - create Dev environment
 k apply -f ./k8s/overlays/dev/output_dev.yaml
 

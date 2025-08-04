@@ -30,34 +30,66 @@ variable "ec2_user_public_rsa" {
 }
 
 
-# Define the security group to allow SSH and Kubernetes ports
+# Define the security group to allow SSH, Kubernetes ports and some other services
 resource "aws_security_group" "allow_ssh_k8s" {
   name        = "allow_ssh_k8s"
-  description = "Allow SSH and Kubernetes ports"
+  description = "Allow SSH, Kubernetes ports and additional services"
   
+  # ssh
   ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] #anywhere
+    cidr_blocks = ["0.0.0.0/0"] #anywhere - you should put your router public IP x.y.x.y/32 here for improved security
   }
   
   # microk8s dashboard-proxy  port
   ingress {
     from_port   = 10443
     to_port     = 10443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] #anywhere
+    protocol    = "https"
+    cidr_blocks = ["0.0.0.0/0"] #anywhere - you should put your router public IP x.y.x.y/32 here for improved security
   }
 
-  # Task manager API
+  # Ollama and the LLM&SLM inside
   ingress {
-    from_port   = 30008
-    to_port     = 30008
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] #anywhere
+    from_port   = 11434
+    to_port     = 11434
+    protocol    = "https"
+    cidr_blocks = ["0.0.0.0/0"] #anywhere - you should put your router public IP x.y.x.y/32 here for improved security
   }
 
+  # Postgres port for TimescaleDB and Vectorizer
+  ingress {
+    from_port   = 15432
+    to_port     = 15432
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] #anywhere - you should put your router public IP x.y.x.y/32 here for improved security
+  }
+
+  # Dapr dashboard port
+  ingress {
+    from_port   = 9999
+    to_port     = 9999
+    protocol    = "https"
+    cidr_blocks = ["0.0.0.0/0"] #anywhere - you should put your router public IP x.y.x.y/32 here for improved security
+  }
+
+  # Flask user web app port
+  ingress {
+    from_port   = 5000
+    to_port     = 5000
+    protocol    = "https"
+    cidr_blocks = ["0.0.0.0/0"] #anywhere - you should put your router public IP x.y.x.y/32 here for improved security
+  }
+
+  # Tilt port
+  ingress {
+    from_port   = 10350
+    to_port     = 10350
+    protocol    = "https"
+    cidr_blocks = ["0.0.0.0/0"] #anywhere - you should put your router public IP x.y.x.y/32 here for improved security
+  }
 
   egress {
     from_port   = 0
@@ -68,7 +100,7 @@ resource "aws_security_group" "allow_ssh_k8s" {
 }
 
 resource "aws_instance" "ubuntu2204" {
-  ami           = "ami-0586af70ffaea9a74" # ARM 64b
+  ami           = "ami-0586af70ffaea9a74" # ARM 64b - you must find the AMIO ID for your region, this is for eu-south-2 (Spain)
   instance_type = "t4g.xlarge" # (4 vCPU -16 GB RAM) change it to your own convinience
   #subnet_id     = data.aws_subnet.default_subnet.id
   key_name      =  data.aws_key_pair.tf.key_name # got above
