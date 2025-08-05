@@ -262,6 +262,8 @@ docker build -t localhost:32000/user-web-dapr:latest .
 docker push localhost:32000/user-web-dapr:latest    
 # deploy the application into mikrok8s - create Dev environment
 k apply -f ./k8s/overlays/dev/output_dev.yaml
+# 5000 flask port forward
+k -n agents port-forward service/user-web-dapr 5000:80 &
 
 #####################################
 # 7 - Optional tools and utilities

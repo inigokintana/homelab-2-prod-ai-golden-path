@@ -20,7 +20,7 @@ We explore concepts like AI agents, RAG and LLM using OSS technologies like Linu
 ├── 1-IaC: we choose kubernetes microK8S implementation as the neutral vendor platform to run differents POCs
 │   ├── AWS: TF/OpenTofu scripts to run it in AWS free tier t4g Ubuntu
 │   └── WSL2: steps/shell script how to install it locally in WSL2 - Ubuntu 22
-│   └──OVH: TF/OpenTofu scripts to run it in OVH Ubuntu European provider
+│   └──OVH-Hetzner: TF/OpenTofu scripts to run it in OVH or Hetzner Ubuntu European provider
 ├── 2-mandatory-k8s-services: mandatory services to install in K8S
 │   ├── dapr: distributed application runtime to standarized microservices and agent implementation
 │   ├── ollama: local LLM offering an API

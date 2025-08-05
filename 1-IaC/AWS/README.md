@@ -105,39 +105,50 @@ If something fails, you may re-execute it partially or totally if needed, userda
 
 # 4 - Breakdown of the Configuration chosen in Opentofu
 
-1. **AWS Provider**: Specifies the AWS region where you want to provision your resources.
-   
-2. **Security Group**: This security group allows:
-   - SSH (port 22)
-   - Kubernetes API port (6443)
-   - MicroK8s API port (16443)
-
-3. **EC2 Instance**: This resource defines the EC2 instance:
-   - **AMI ID**: The image ID for Ubuntu 22.04. The provided `ami-0dba2cb6798c5dbb7` is for the `us-east-1` region. You should replace it with the corresponding AMI for your AWS region.
-   - **Instance Type**: It uses `t3.micro`, which is eligible for the AWS Free Tier. You can adjust this as per your needs.
-   - **Key Name**: Replace `"your-ssh-key-name"` with the name of your SSH key for accessing the EC2 instance.
-
-4. **User Data**: This section contains a bash script that:
-   - Updates the package lists (`apt update`).
-   - Installs `snapd` to allow installation of MicroK8s via Snap.
-   - Installs MicroK8s with the `--classic` option.
-   - Waits for MicroK8s to be ready.
-   - Enables MicroK8s' DNS and dashboard services.
+1. **Variables**: gettin router public IP
+2. **AWS Provider**: Specifies the AWS region where you want to provision your resources.
+3. **Resources: getting data**: getting vpc and key pair data.
+4. **Resources: provisioning resources**
+   - **EC2 Instance**: This resource defines the EC2 instance:
+      - **AMI ID**: The image ID for Ubuntu 22.04. The provided `ami-0586af70ffaea9a74` is for the `eu-south-2 (Spain)` region. You should replace it with the corresponding AMI for your AWS region.
+      - **Instance Type**: It uses "t4g.xlarge" # (4 vCPU -16 GB RAM). You can adjust this as per your needs.
+      - **Key pair**: SSH key for accessing the EC2 instance.
+   - **Security Group**: This security group allows:
+      - SSH (port 22)
+      - Microk8s dashboard-proxy (port 10443)- you could comment this and use ssh tunnel: ssh -L 10443:localhost:10443 ubuntu@instance_public_ip
+      - Ollama and the LLM&SLM inside (port 11434) -  you could comment this and use ssh tunnel: ssh -L 11434:localhost:11434 ubuntu@instance_public_ip
+      - Postgres port for TimescaleDB and Vectorizer (port 15432) you could comment this and use ssh tunnel: ssh -L 15432:localhost:1154321434 ubuntu@instance_public_ip
+      - Dapr dashboard (port 9999)
+      - you could comment this and use ssh tunnel: ssh -L 9999:localhost:9999 ubuntu@instance_public_ip
+      - Flask user web app (port 5000) - you could comment this and use ssh tunnel: ssh -L 5000:localhost:5000 ubuntu@instance_public_ip
+      - Tilt (port 10350) - you could comment this and use ssh tunnel: ssh -L 10350:localhost:10350 ubuntu@instance_public_ip
+   - **User Data**: This section contains a bash script that:
+      - 1) Updates the package lists 
+      - 2) Install mandatory tools like docker, kubectl and git and clone the repoSnap.
+      - 3) Installs MicroK8s  
+      - 4) Install Dapr
+      - 5) Install mandatory k8s services for this POC - Ollama, PostgreSQL, pg AI
+      - 6) Install dapr microservices agents in K8s:data ingestor with scraper and Flask user-web
+      - 7) Install optional tools: Opentofu, Kustomize and Visual Studio Code
 
 5. **Outputs**: The public and private IP addresses of the instance are outputted after the instance is created, which can be useful for connecting to the instance or accessing the MicroK8s dashboard.
 
 
 
-### Notes
+
+## 5 - Play with the config:
+
+- As mentioned before, adapt Opentofu script to include shell scripts steps 4), 5) and 6) to use kubectl & helm providers.
+
+**Important NOTICE about IaC**: shell script does not properly manage the state so it is very basic IaC.  OpenTofu, on the other hand, is fully compliant IaC as it is built with State tracking, Idempotence (safe to re-run), Dependency graph, Rollback support, Plan before apply and is Modular & composable. Please, if you go to PROD consider migrating some steps of the shell script into OpenTofu, for example:
+- Step 4 install Dapr with Helm with [OpenTofu Helm provider](https://search.opentofu.org/provider/opentofu/helm/latest)
+- All the kubectl apply commands in steps 5 and 6, install them with [OpenTofu Kubectl Provider](https://search.opentofu.org/provider/opentofu/kubernetes/v2.0.0)
+
+
+
+# 6 - Final notes
 - **Security**: Ensure your security group is configured to allow only trusted IPs, especially for production environments.
 - **AMI ID**: Always verify the Ubuntu 22.04 AMI ID for your region in the AWS console. You can find the most recent AMIs via AWS Marketplace or the EC2 console.
 - **Instance Type**: Adjust the instance type to suit your needs, especially if you require more resources for Kubernetes workloads.
 
 This configuration provides a simple and quick setup for provisioning an EC2 instance with Ubuntu 22.04 and installing MicroK8s automatically.
-
-
-## 6 - Play with the config:
-
-- Open ports
-- not for PROD
-- kubectl 6 helm

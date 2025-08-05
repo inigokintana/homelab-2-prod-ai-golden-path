@@ -55,7 +55,7 @@ spec:
                 name: dapr-scraper-config
             - secretRef:
                 name: dapr-scraper-secret
-            image: localhost:32000/my-scraper-image
+            image: localhost:32000/injection-agent-web-dapr
             imagePullPolicy: IfNotPresent
             name: scraper
           restartPolicy: OnFailure

@@ -21,7 +21,7 @@ The container needs propper permisions K8S SA or SA with AWS IAM ROLE or AZuRE A
 ***
 6) Future:
 My local LLM reponds with this dictionary structure. Inside my browser. I know that it should be enough to show the response part to user. But I want to known how professional services use the other parts to give a better service:
-
+**Gunicorn**
 Save values in DB -> Prometheus
 
 {

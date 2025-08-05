@@ -42,7 +42,7 @@ spec:
           restartPolicy: OnFailure
           containers:
           - name: scraper
-            image: my-scraper-image:latest  # Replace with your image
+            image: injection-agent-web-dapr:latest  # Replace with your image
             imagePullPolicy: IfNotPresent
             envFrom:
             - configMapRef:

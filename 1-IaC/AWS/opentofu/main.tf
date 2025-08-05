@@ -1,7 +1,29 @@
+# 1) Variables
+#################
+# public ssh RSA to include in AWS EC2 to be able to connect
+# Not needed as we reference key pair in resource Ec2 Instance in OpenTofu
+# variable "ec2_user_public_rsa" {
+#   type    = string
+#   default = "ssh-rsa MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA65SCWxubb5qi5iHcVq8e5DIDmkAGeYYtNvO2w2BywOoMiQprbzbBEnar9vGJbIZIAbYjW0e/rzvVSbu0e5mzOvRcm8nmsgr2dp53EW/KUJG/6GhBlIzJLjA5ItV92kDZRLYOuhSuurrpo8x/uycLixrsNp4BP66etPRsL3QgEQ1rVSbLRDxwzSYJB64fELTqZRkREqoTA/mfuE2/BLu6t2zV9Zo6a5G2ZyXQlCo/lG3/WngriB2D9FAZ6WvqYmip0AIdXTOrDxYtJe8KPEOiv0uGpjbwhKB1CsBkrq3bF7qZhBWQ6WZB3Q7XWPchSmgk2hgMIjY3aySWO4B0+qK8xwIDAQAB"
+# }
+
+# IPs allowed to cross the instace security group
+# For security reasons, you should put your router public IP x.y.x.y/32 here
+# instead of 0.0.0.0/0 <-anywhere 
+variable "sg_ip_cidr" {
+  type    = string
+  #default = "0.0.0.0/0" # anywhere 
+  default ="88.9.66.149/32" # my router public dinamyc IP, change it to your own convinience
+}
+
+# 2) Provider
+#################
 provider "aws" {
   region = "eu-south-2" # Spain, change it to you own convinience
 }
 
+# 3) Resources: getting data
+#################
 # Fetch the default VPC
 data "aws_vpc" "default" {
   default = true
@@ -24,12 +46,8 @@ data "aws_key_pair" "tf" {
   }
 }
 
-variable "ec2_user_public_rsa" {
-  type    = string
-  default = "ssh-rsa MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA65SCWxubb5qi5iHcVq8e5DIDmkAGeYYtNvO2w2BywOoMiQprbzbBEnar9vGJbIZIAbYjW0e/rzvVSbu0e5mzOvRcm8nmsgr2dp53EW/KUJG/6GhBlIzJLjA5ItV92kDZRLYOuhSuurrpo8x/uycLixrsNp4BP66etPRsL3QgEQ1rVSbLRDxwzSYJB64fELTqZRkREqoTA/mfuE2/BLu6t2zV9Zo6a5G2ZyXQlCo/lG3/WngriB2D9FAZ6WvqYmip0AIdXTOrDxYtJe8KPEOiv0uGpjbwhKB1CsBkrq3bF7qZhBWQ6WZB3Q7XWPchSmgk2hgMIjY3aySWO4B0+qK8xwIDAQAB"
-}
-
-
+# 4) Resources: provisioning resources
+#################
 # Define the security group to allow SSH, Kubernetes ports and some other services
 resource "aws_security_group" "allow_ssh_k8s" {
   name        = "allow_ssh_k8s"
@@ -40,55 +58,62 @@ resource "aws_security_group" "allow_ssh_k8s" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] #anywhere - you should put your router public IP x.y.x.y/32 here for improved security
+    #cidr_blocks = ["0.0.0.0/0"] #anywhere - you should put your router public IP x.y.x.y/32 here for improved security
+    cidr_blocks = [var.sg_ip_cidr]
   }
   
   # microk8s dashboard-proxy  port
+  # you could comment this and use ssh tunnel: ssh -L 10443:localhost:10443 ubuntu@instance_public_ip
   ingress {
     from_port   = 10443
     to_port     = 10443
-    protocol    = "https"
-    cidr_blocks = ["0.0.0.0/0"] #anywhere - you should put your router public IP x.y.x.y/32 here for improved security
+    protocol    = "tcp"
+    cidr_blocks = [var.sg_ip_cidr]
   }
 
   # Ollama and the LLM&SLM inside
+  # you could comment this and use ssh tunnel: ssh -L 11434:localhost:11434 ubuntu@instance_public_ip
   ingress {
     from_port   = 11434
     to_port     = 11434
-    protocol    = "https"
-    cidr_blocks = ["0.0.0.0/0"] #anywhere - you should put your router public IP x.y.x.y/32 here for improved security
+    protocol    = "tcp"
+    cidr_blocks = [var.sg_ip_cidr]
   }
 
   # Postgres port for TimescaleDB and Vectorizer
+  # you could comment this and use ssh tunnel: ssh -L 15432:localhost:1154321434 ubuntu@instance_public_ip
   ingress {
     from_port   = 15432
     to_port     = 15432
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] #anywhere - you should put your router public IP x.y.x.y/32 here for improved security
+    cidr_blocks = [var.sg_ip_cidr]
   }
 
   # Dapr dashboard port
+  # you could comment this and use ssh tunnel: ssh -L 9999:localhost:9999 ubuntu@instance_public_ip
   ingress {
     from_port   = 9999
     to_port     = 9999
-    protocol    = "https"
-    cidr_blocks = ["0.0.0.0/0"] #anywhere - you should put your router public IP x.y.x.y/32 here for improved security
+    protocol    = "tcp"
+    cidr_blocks = [var.sg_ip_cidr]
   }
 
   # Flask user web app port
+  # you could comment this and use ssh tunnel: ssh -L 5000:localhost:5000 ubuntu@instance_public_ip
   ingress {
     from_port   = 5000
     to_port     = 5000
-    protocol    = "https"
-    cidr_blocks = ["0.0.0.0/0"] #anywhere - you should put your router public IP x.y.x.y/32 here for improved security
+    protocol    = "tcp"
+    cidr_blocks = [var.sg_ip_cidr]
   }
 
   # Tilt port
+  # you could comment this and use ssh tunnel: ssh -L 10350:localhost:10350 ubuntu@instance_public_ip
   ingress {
     from_port   = 10350
     to_port     = 10350
-    protocol    = "https"
-    cidr_blocks = ["0.0.0.0/0"] #anywhere - you should put your router public IP x.y.x.y/32 here for improved security
+    protocol    = "tcp"
+    cidr_blocks = [var.sg_ip_cidr]
   }
 
   egress {
@@ -117,7 +142,8 @@ resource "aws_instance" "ubuntu2204" {
   }
 }
 
-
+# 5) Outputs
+#################
 output "instance_public_ip" {
   value = aws_instance.ubuntu2204.public_ip
 }

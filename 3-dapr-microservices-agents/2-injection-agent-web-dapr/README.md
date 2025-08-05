@@ -2,6 +2,8 @@
 
 We want to load the Dapr official documentation and any documentation updates into local pgvector database where pgai vectorizer will automatically create a semantic content to ease LLM answers about any Dapr topic once every day.
 
+This vectorized tables are what it is call a RAG database.
+
 
 # 2 - Project Structure
 
@@ -12,7 +14,7 @@ We want to load the Dapr official documentation and any documentation updates in
 │   ├── base/                 # Base Kubernetes manifests
 │   └── overlays/
 │       ├── dev/              # DEV environment overlays
-│       └── prod/             # PROD environment overlays
+│       └── prod/             # PROD environment overlays - TODO not really implemented
 ├── Dockerfile                # Docker build for the scraper
 ├── load-into-db-dapr.py      # Python scraper and logic
 ├── Tilfile                   # Tilt environment setup to sync python code directly into k8s container
@@ -40,7 +42,7 @@ We want to load the Dapr official documentation and any documentation updates in
         - Edit overlays/dev/kustomization.yaml and overlays/dev/patch-deployment.yaml with your custom values
         - Exec: kustomize build overlays/dev  > overlays/dev/output_dev.yaml
         - kubectl apply -f k8s/overlays/dev/overlays/dev/output_dev.yaml or config Tilfile in order to be able to execute overlays/dev/output_dev.yaml file
-      - PROD:
+      - PROD: - TODO not really implemented
         - cd k8s
         - Edit overlays/prod/kustomization.yaml and overlays/prod/patch-deployment.yaml with your custom values
         - Exec: kustomize build overlays/prod  > overlays/rod/output_prod.yaml

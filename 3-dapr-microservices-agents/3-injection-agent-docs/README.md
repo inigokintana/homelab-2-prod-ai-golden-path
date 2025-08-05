@@ -1,3 +1,6 @@
+
+WIP
+
 https://github.com/timescale/pgai/blob/main/docs/vectorizer/document-embeddings.md
 https://github.com/timescale/pgai/tree/main/examples/embeddings_from_documents
 
