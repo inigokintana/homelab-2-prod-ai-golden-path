@@ -134,7 +134,7 @@ resource "aws_instance" "ubuntu2204" {
     volume_size = 50
     volume_type = "gp2"
   }
-  user_data = file("./userdata.sh")
+  user_data = base64gzip(file("./userdata.sh"))
   tags = {
     Name = "ubuntu2204-microk8s"
     Opentofu   = "true"

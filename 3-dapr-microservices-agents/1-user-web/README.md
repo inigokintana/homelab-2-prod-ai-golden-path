@@ -12,7 +12,7 @@ dapr_web + dapr_docs+ github MCR + 6) steps saved
 ***
 
 Do it manually and do not generate YAML not to get the OpenAI key exposed: 
-1) k -n agents create secret generic openai-api-key --from-literal=dapr=<your-openai-api-key-here>
+1) k -n agents create secret generic openai-api-key --from-literal=dapr=<your-openai-api-key-here>  *****
 secret/openai-api-key created  
 2) openai-llm-component refers to openai-api-key 
 3) Python code uses dapr sdk to get secret that could be in K8s, AWS secret or wherever

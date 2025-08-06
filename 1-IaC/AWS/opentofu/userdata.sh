@@ -258,7 +258,10 @@ psql -U postgres -d postgres -h localhost -p 15432 < ./sql/create-vectorized-tab
 # create local registry image -  build the image with microk8s docker
 docker build -t localhost:32000/user-web-dapr:latest .
 # push the image to the local registry
-docker push localhost:32000/user-web-dapr:latest    
+docker push localhost:32000/user-web-dapr:latest   
+# OpeanAI api key - Substitute it manually later and do not generate YAML not to get your OpenAI key exposed
+# we must set it knownow with a fake value otherwise user-web pod fails to start
+k -n agents create secret generic openai-api-key --from-literal=dapr=test-change-it 
 # deploy the application into mikrok8s - create Dev environment
 k apply -f ./k8s/overlays/dev/output_dev.yaml
 # 5000 flask port forward
@@ -267,69 +270,80 @@ k -n agents port-forward service/user-web-dapr 5000:80 &
 #####################################
 # 7 - Optional tools and utilities
 #####################################
+# These tools are optional and can be installed if needed.
+# 
+echo "Create this file with "touch /tmp/YES.txt" to install optional tools(Opentofu, Kustomize, Tilt and VSCode) from another shell console"
+echo "We will wait 60 seconds for your answer - if no answer we install nothing"
+sleep 60
+if [ -e /tmp/YES.txt ]
+then
+    echo "Installing Opentofu, Kustomize, Tilt and VSCode"
 
-## 7.1 - Opentofu
-# Opentofu is an open-source alternative to Terraform, a popular infrastructure as code (IaC) tool.
-# Opentofu is designed to be compatible with Terraform configurations and provides a similar command-line interface
-######
-# tooling
-sudo apt-get install -y apt-transport-https ca-certificates curl gnupg
-# Add the OpenTofu APT repo
-sudo install -m 0755 -d /etc/apt/keyrings
-curl -fsSL https://get.opentofu.org/opentofu.gpg | sudo tee /etc/apt/keyrings/opentofu.gpg >/dev/null
-curl -fsSL https://packages.opentofu.org/opentofu/tofu/gpgkey | sudo gpg --no-tty --batch --dearmor -o /etc/apt/keyrings/opentofu-repo.gpg >/dev/null
-sudo chmod a+r /etc/apt/keyrings/opentofu.gpg /etc/apt/keyrings/opentofu-repo.gpg
-# create the OpenTofu source list
-echo \
-  "deb [signed-by=/etc/apt/keyrings/opentofu.gpg,/etc/apt/keyrings/opentofu-repo.gpg] https://packages.opentofu.org/opentofu/tofu/any/ any main
-deb-src [signed-by=/etc/apt/keyrings/opentofu.gpg,/etc/apt/keyrings/opentofu-repo.gpg] https://packages.opentofu.org/opentofu/tofu/any/ any main" | \
-  sudo tee /etc/apt/sources.list.d/opentofu.list > /dev/null
-sudo chmod a+r /etc/apt/sources.list.d/opentofu.list
+    ## 7.1 - Opentofu
+    # Opentofu is an open-source alternative to Terraform, a popular infrastructure as code (IaC) tool.
+    # Opentofu is designed to be compatible with Terraform configurations and provides a similar command-line interface
+    ######
+    # tooling
+    sudo apt-get install -y apt-transport-https ca-certificates curl gnupg
+    # Add the OpenTofu APT repo
+    sudo install -m 0755 -d /etc/apt/keyrings
+    curl -fsSL https://get.opentofu.org/opentofu.gpg | sudo tee /etc/apt/keyrings/opentofu.gpg >/dev/null
+    curl -fsSL https://packages.opentofu.org/opentofu/tofu/gpgkey | sudo gpg --no-tty --batch --dearmor -o /etc/apt/keyrings/opentofu-repo.gpg >/dev/null
+    sudo chmod a+r /etc/apt/keyrings/opentofu.gpg /etc/apt/keyrings/opentofu-repo.gpg
+    # create the OpenTofu source list
+    echo \
+      "deb [signed-by=/etc/apt/keyrings/opentofu.gpg,/etc/apt/keyrings/opentofu-repo.gpg] https://packages.opentofu.org/opentofu/tofu/any/ any main
+    deb-src [signed-by=/etc/apt/keyrings/opentofu.gpg,/etc/apt/keyrings/opentofu-repo.gpg] https://packages.opentofu.org/opentofu/tofu/any/ any main" | \
+      sudo tee /etc/apt/sources.list.d/opentofu.list > /dev/null
+    sudo chmod a+r /etc/apt/sources.list.d/opentofu.list
 
-# Install OpenTofu
-sudo apt update
-sudo apt-get install -y tofu
-# Verify
-tofu version
+    # Install OpenTofu
+    sudo apt update
+    sudo apt-get install -y tofu
+    # Verify
+    tofu version
 
-# 7.2 - Kustomize
-# Kustomize is a tool for managing Kubernetes configurations.
-# It allows users to create, modify, and manage Kubernetes resources using a declarative approach.
-#######
-# Download latest kustomize release (replace version as needed)
-curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
-# Move to a global location
-sudo mv kustomize /usr/local/bin/
-# Verify
-kustomize version
+    # 7.2 - Kustomize
+    # Kustomize is a tool for managing Kubernetes configurations.
+    # It allows users to create, modify, and manage Kubernetes resources using a declarative approach.
+    #######
+    # Download latest kustomize release (replace version as needed)
+    curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
+    # Move to a global location
+    sudo mv kustomize /usr/local/bin/
+    # Verify
+    kustomize version
 
 
-# 7.3 - Tilt
-# Tilt is a tool for managing Kubernetes applications.
-# It provides a way to build, deploy, and manage applications in Kubernetes using a simple configuration file.
-#########
-# Install Tilt
-curl -fsSL https://raw.githubusercontent.com/tilt-dev/tilt/master/scripts/install.sh | bash
-# Verify
-tilt version
+    # 7.3 - Tilt
+    # Tilt is a tool for managing Kubernetes applications.
+    # It provides a way to build, deploy, and manage applications in Kubernetes using a simple configuration file.
+    #########
+    # Install Tilt
+    curl -fsSL https://raw.githubusercontent.com/tilt-dev/tilt/master/scripts/install.sh | bash
+    # Verify
+    tilt version
 
-## 7.4 - VSCode
-# Visual Studio Code (VSCode) is a popular open-source code editor developed by Microsoft.
-# It provides a powerful and flexible environment for developing applications in a variety of programming languages.        
-#######
-# Install dependencies
-sudo apt install -y wget gpg apt-transport-https software-properties-common
-# Import Microsoft GPG key
-wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg
-sudo install -o root -g root -m 644 packages.microsoft.gpg /usr/share/keyrings/
-rm packages.microsoft.gpg
-# Add the VS Code repository
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/packages.microsoft.gpg] \
-https://packages.microsoft.com/repos/code stable main" | \
-sudo tee /etc/apt/sources.list.d/vscode.list
-# Update package list and install
-sudo apt update
-sudo apt install -y code
+    ## 7.4 - VSCode
+    # Visual Studio Code (VSCode) is a popular open-source code editor developed by Microsoft.
+    # It provides a powerful and flexible environment for developing applications in a variety of programming languages.        
+    #######
+    # Install dependencies
+    sudo apt install -y wget gpg apt-transport-https software-properties-common
+    # Import Microsoft GPG key
+    wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg
+    sudo install -o root -g root -m 644 packages.microsoft.gpg /usr/share/keyrings/
+    rm packages.microsoft.gpg
+    # Add the VS Code repository
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/packages.microsoft.gpg] \
+    https://packages.microsoft.com/repos/code stable main" | \
+    sudo tee /etc/apt/sources.list.d/vscode.list
+    # Update package list and install
+    sudo apt update
+    sudo apt install -y code
+else
+    echo "We are not installing Opentofu, Kustomize, Tilt or VSCode - You can install them later copying from this shell script step 7)"
+fi
 
 ################
 # 8 - ports info
