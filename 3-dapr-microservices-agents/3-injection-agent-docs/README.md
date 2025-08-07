@@ -1,56 +1,10 @@
 
 **WIP**
+We se there are several options to implement this:
+- 1) pgAI is designed to read documents from for example S3, HTTP files or local files and store docuuments embedding in RAG database for semantic search. Here how [example 1](https://github.com/timescale/pgai/blob/main/docs/vectorizer/document-embeddings.md) and [example2](https://github.com/timescale/pgai/tree/main/examples/embeddings_from_documents).
+- 2) dapr agent getting PDFs from expecific sites(https://github.com/dapr/dapr-agents/blob/249ea5ec43f75825f662992e765cb09b5fd31695/docs/concepts/arxiv_fetcher.md)
+- 3) Custom programming using Dapr building blocks or not . You can see a raw inmplememtation here but we are not installing it automatically in K8S/shell script.
 
-https://github.com/timescale/pgai/blob/main/docs/vectorizer/document-embeddings.md
-https://github.com/timescale/pgai/tree/main/examples/embeddings_from_documents
+Still valuing the pros and cons of options 1) and 2) that seems more interesting than option 3). 
 
 **WIP**
-
-# table
-CREATE TABLE IF NOT EXISTS document_metadata (
-    id SERIAL PRIMARY KEY,
-    title TEXT NOT NULL,
-    uri TEXT NOT NULL,
-    content_hash TEXT NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    content_type TEXT NOT NULL,
-    owner_id INTEGER,
-    access_level TEXT,
-    tags TEXT[]
-);
-
--- Example with rich metadata
-INSERT INTO document_metadata (title, uri, content_type, owner_id, access_level, tags) VALUES
-    ('Product Manual', 's3://my-bucket/documents/product-manual.pdf', 'application/pdf', 12, 'internal', ARRAY['product', 'reference']),
-    ('API Reference', 's3://my-bucket/documents/api-reference.md', 'text/markdown', 8, 'public', ARRAY['api', 'developer']);
-
-
-# File access
-Verify PostgreSQL has read permissions for the document files.
-Ensure file paths are correct and accessible.
-# vectorizer
-SELECT ai.create_vectorizer(
-    'document_metadata'::regclass,
-    loading => ai.loading_uri(column_name => 'uri'),
-    parsing => ai.parsing_auto(),
-    chunking => ai.chunking_recursive_character_text_splitter(
-        chunk_size => 700,
-        separators => array[E'\n## ', E'\n### ', E'\n#### ', E'\n- ', E'\n1. ', E'\n\n', E'\n', '.', '?', '!', ' ', '', '|']
-    ),
-    embedding => ai.embedding_ollama('nomic-embed-text', 768),
-    destination => ai.destination_table('document_embeddings');
-
-
-   -- embedding => ai.embedding_openai('text-embedding-3-small', 768),
-    -- embedding => ai.embedding_ollama('nomic-embed-text', 768, base_url => 'http://ollama:11434')
-# advance query
--- Find documents relevant to customers with pending support tickets
-SELECT c.name, d.title, e.chunk 
-FROM customers c
-JOIN support_tickets t ON c.id = t.customer_id
-JOIN customer_documentation cd ON c.id = cd.customer_id
-JOIN document_embeddings e ON cd.document_id = e.id
-WHERE t.status = 'pending'
-ORDER BY e.embedding <=> <search_embedding>
-LIMIT 10;

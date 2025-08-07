@@ -7,10 +7,8 @@ We explore concepts like AI agents, RAG and LLM using OSS technologies like Linu
 
 # 1 - Project structure:
 
-
-**youtube VIDEO** **WIP**
-
-**[Presentation slides](./docs/Presentation-homelab-2-prod-ai-golden-path.odp)**  **WIP**
+- **you tube VIDEO** **WIP**
+- **[PDF presentation slides](./docs/Presentation-homelab-2-prod-ai-golden-path.pdf)**
 
 ```
 ├── 1-IaC: we choose kubernetes microK8S implementation as the neutral vendor platform to run differents POCs
@@ -18,14 +16,14 @@ We explore concepts like AI agents, RAG and LLM using OSS technologies like Linu
 │   └── WSL2: steps/shell script how to install it locally in WSL2 - Ubuntu 22.04
 │   └──OVH-Hetzner: TF/OpenTofu scripts to run it in OVH or Hetzner Ubuntu 22.04 European provider **WIP*
 ├── 2-mandatory-k8s-services: mandatory services to install in K8S
-│   ├── dapr: distributed application runtime to standarized microservices and agent implementation
+│   ├── dapr: distributed application runtime helping microservices standardization and agent implementation
 │   ├── ollama: local LLM offering an API
-│   ├── timescaleDB: timesaries database based on postgreSQL with vector database support, our RAG database, pgAI vectrorizer
+│   ├── timescaleDB: postgreSQL with vector database support, our RAG database, pgAI vectorizer
 ├── 3-dapr-microservices-agents: microservices and agents inserting data into database and passing it trought to LLM
-    ├── 1-user-web
-    ├── 2-injection-agent-web-dapr
-    ├── 3-injection-agent-docs  **WIP*
-    ├── 4-MCP  **WIP*
+│   ├── 1-user-web
+│   ├── 2-injection-agent-web-dapr
+│   ├── 3-injection-agent-docs  **WIP*
+│   ├── 4-MCP  **WIP*
 └── 4-optional-k8s-services: optional services to install in K8S **WIP*
 └── Docs
 ``` 

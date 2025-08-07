@@ -1,0 +1,5 @@
+We use LLaMA 3.2 1B
+
+"Built with Llama" 
+
+https://github.com/meta-llama/llama-models/blob/main/models/llama3_2/LICENSE

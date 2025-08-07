@@ -1,19 +1,5 @@
 .vscode
 .venv
-#2-Docker/tasks-flask-api/.venv
-#5-WASM/.venv
-# 8-BigData-AI/Dapr
-# 8-BigData-AI/Dapr/dapr-agents/quickstarts/*
-# 8-BigData-AI/Dapr/quickstarts
-# 8-BigData-AI/files
-# 8-BigData-AI/pgDemo
-# 8-BigData-AI/Ollama
-# Ignore everything in '8-BigData-AI' folder
-#8-BigData-AI/*
-# Except for 'final'
-#!8-BigData-AI/final/
-# Additionally, if there are files inside 'final' that should be included, you need to unignore those as well
-#!8-BigData-AI/final/**
 1-IaC/AWS/opentofu/.terraform
 1-IaC/AWS/opentofu/.terraform.lock.hcl
 1-IaC/AWS/opentofu/terraform.tfstate*
