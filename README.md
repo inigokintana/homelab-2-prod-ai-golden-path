@@ -1,40 +1,37 @@
 # Homelab to PROD golden path on AI
 
-**WIP WIP WIP**
-
 This is a golden path A.K.A an opinionated shortcut,  to explore AI from local homelab to PROD using OSS for technological independence and local LLM for privacy. 
 
 We explore concepts like AI agents, RAG and LLM using OSS technologies like Linux, Opentofu, microk8s, DAPR, Ollama, TimescaleDB & pgai Vectorizer, Flask and Python.
 
-**WIP WIP WIP**
 
 # 1 - Project structure:
 
-**WIP**
 
-**youtube VIDEO** WIP
+**youtube VIDEO** **WIP**
 
-**[Presentation slides](./docs/Presentation-homelab-2-prod-ai-golden-path.odp)** WIP
+**[Presentation slides](./docs/Presentation-homelab-2-prod-ai-golden-path.odp)**  **WIP**
 
 ```
 ├── 1-IaC: we choose kubernetes microK8S implementation as the neutral vendor platform to run differents POCs
-│   ├── AWS: TF/OpenTofu scripts to run it in AWS free tier t4g Ubuntu
-│   └── WSL2: steps/shell script how to install it locally in WSL2 - Ubuntu 22
-│   └──OVH-Hetzner: TF/OpenTofu scripts to run it in OVH or Hetzner Ubuntu European provider
+│   ├── AWS: TF/OpenTofu scripts to run it in AWS free tier t4g Ubuntu 22.04
+│   └── WSL2: steps/shell script how to install it locally in WSL2 - Ubuntu 22.04
+│   └──OVH-Hetzner: TF/OpenTofu scripts to run it in OVH or Hetzner Ubuntu 22.04 European provider **WIP*
 ├── 2-mandatory-k8s-services: mandatory services to install in K8S
 │   ├── dapr: distributed application runtime to standarized microservices and agent implementation
 │   ├── ollama: local LLM offering an API
-│   ├── timescaleDB: timesaries database based on postgreSQL with vector database support, our RAG database
-│   └── pgaiVectorizer: provides continuous embedding update on vector database
+│   ├── timescaleDB: timesaries database based on postgreSQL with vector database support, our RAG database, pgAI vectrorizer
 ├── 3-dapr-microservices-agents: microservices and agents inserting data into database and passing it trought to LLM
-└── 4-optional-k8s-services: optional services to install in K8S
+    ├── 1-user-web
+    ├── 2-injection-agent-web-dapr
+    ├── 3-injection-agent-docs  **WIP*
+    ├── 4-MCP  **WIP*
+└── 4-optional-k8s-services: optional services to install in K8S **WIP*
 └── Docs
 ``` 
 # 2 - Install
 
-**WIP**
-
-Go into "1 - IaC" subfolder, select your infra and execute within.
+Go into "1 - IaC" subfolder, select your infra and credentials and execute within.
 
 ## 3 - Golden path context
 
