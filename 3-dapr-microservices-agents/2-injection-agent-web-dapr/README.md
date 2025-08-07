@@ -4,8 +4,15 @@ We want to load the Dapr official documentation and any documentation updates in
 
 This vectorized tables are what it is call a RAG database.
 
+![Applications](../../docs/applications-view.png)
 
-# 2 - Project Structure
+# 2 - How do we install it?
+
+Check step 6) and specifically step 6.3) in:
+- 1-IaC/AWS/opentofu/userdata.sh
+- 1-IaC/WSL2/install-in-WSL2.sh
+
+# 3 - Project Structure
 
 ```
 .
@@ -21,10 +28,10 @@ This vectorized tables are what it is call a RAG database.
 └── README.md
 ```
 
-# 3 - How we do this?
+# 4 - How do we do this?
 - Prerequsites: 
   - Ollama & pgvector & pgai must be installed as part of 2-mandatory-k8s-services section.
-  - Install Kustomize: Kustomize introduces a template-free way to customize application configuration that simplifies the use of off-the-shelf applications, [see link](https://kustomize.io/). [Install Kustomize by downloading precompiled binaries](https://kubectl.docs.kubernetes.io/installation/kustomize/binaries/)
+  - Install Kustomize: Kustomize introduces a template-free way to customize application configuration that simplifies the use of off-the-shelf applications, [see link](https://kustomize.io/).
   - Tilt: Tilt powers microservice development and makes sure they behave! Run tilt up to work in a complete dev environment configured for your team, [see link](https://docs.tilt.dev/install.html#linux) and [this for MicroK8s](https://docs.tilt.dev/choosing_clusters.html#microk8s)
 
 - In this section:
@@ -67,7 +74,7 @@ This vectorized tables are what it is call a RAG database.
       - adpat docker_build inside Tiltfile in order to rebuild images inside local registry of MikroK8s
     - Exec: "tilt up" to activate syncronization between your code and k8s containers
 
-# 4 - Troubleshooting
+# 5 - Troubleshooting
 
 - **Dapr sidecar does not shut down:**  
   Ensure your job sends a shutdown signal as described in the [Dapr docs](https://docs.dapr.io/operations/hosting/kubernetes/kubernetes-job/).

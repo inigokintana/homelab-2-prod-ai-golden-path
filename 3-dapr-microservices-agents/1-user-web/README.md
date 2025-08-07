@@ -1,29 +1,116 @@
-Steps:
+# 1- Objective
 
-1) Prompt -> embbed all-minilm
-2) RAG database SAME encoding all-minilm in vectorizer 
-We can not use OpenAI to create prompt embedding with our RAG database because OpenAI does not support all-minilm encoding
-3) SQL comparison with semantic search
-UNION with several tables
-dapr_web + dapr_docs+ github MCR + 6) steps saved
-4) pass search results to Ollama or OpenAI LLM
-5) Get LLM answer
-6) Save: prompts, embedded, answers, timestamps and user
-***
+We want this to happen in several steps:
+- 1) User ask a question about Dapr.
+- 2) The SLM inside OLLAMA to embed the user prompt.RAG database has SAME encoding all-minilm in vectorizer 
+We can not use OpenAI to create prompt embedding with our RAG database because OpenAI does not support all-minilm encoding.
+- 3) Make a semantic search in pgAI vectorized database.
+- 4) Give the result back to Ollama SLM to get a proper answer based on our own data. Alternatively, we can choose OpenAI to make the step 4) but requires you to recreate the fake OpenAI API_KEY.
+- 5) If user says answer is good enough we save it in good_answers table that can be used to improve future semantic search. We could save  prompts, embedded, answers, timestamps and user.
 
-Do it manually and do not generate YAML not to get the OpenAI key exposed: 
-1) k -n agents create secret generic openai-api-key --from-literal=dapr=<your-openai-api-key-here>  *****
-secret/openai-api-key created  
-2) openai-llm-component refers to openai-api-key 
-3) Python code uses dapr sdk to get secret that could be in K8s, AWS secret or wherever
-The container needs propper permisions K8S SA or SA with AWS IAM ROLE or AZuRE AD
+![Applications](../../docs/applications-view.png)
 
-***
-6) Future:
-My local LLM reponds with this dictionary structure. Inside my browser. I know that it should be enough to show the response part to user. But I want to known how professional services use the other parts to give a better service:
-**Gunicorn**
-Save values in DB -> Prometheus
+# 2 - How do we install it?
 
+Check step 6) and specifically step 6.4) in:
+- 1-IaC/AWS/opentofu/userdata.sh
+- 1-IaC/WSL2/install-in-WSL2.sh
+
+Additionaly, to recreate an OpenAI API_KEY:
+- To delete existing fake one: k -n agents delete secret generic openai-api-key
+- To create a new one with valid OpenAI API_KEY: k -n agents create secret generic openai-api-key --from-literal=dapr=**test-change-it**
+- Pod restart: k -n agents rollout restart deployment user-web-dapr
+
+# 3 - Project Structure
+
+```
+.
+├── sql/                      # SQL scripts for table creation
+├── k8s/
+│   ├── base/                 # Base Kubernetes manifests
+│   └── overlays/
+│       ├── dev/              # DEV environment overlays
+│       └── prod/             # PROD environment overlays - TODO not really implemented
+├── Dockerfile                # Docker build for the scraper
+├── app-dapr.py               # Flask with HTML template and Python logic
+├── Tilfile                   # Tilt environment setup to sync python code directly into k8s container
+└── README.md
+```
+
+# 4 - How do we do this?
+- Prerequsites: 
+  - Ollama & pgvector & pgai must be installed as part of 2-mandatory-k8s-services section.
+  - 3-dapr-microservices-agents/2-injection-agent-web-dapr injection agent must have inserted some data in dapr_web table.
+  - Install Kustomize: Kustomize introduces a template-free way to customize application configuration that simplifies the use of off-the-shelf applications, [see link](https://kustomize.io/).
+  - Tilt: Tilt powers microservice development and makes sure they behave! Run tilt up to work in a complete dev environment configured for your team, [see link](https://docs.tilt.dev/install.html#linux) and [this for MicroK8s](https://docs.tilt.dev/choosing_clusters.html#microk8s)
+
+- In this section:
+  - Create DB table: see sql/create-table.sql
+  - Create vectorized table with semantic data: see sql/create-vectorized-table.sql
+  - K8S in k8s/base directory:
+    - binding-postgresql.yaml,  Dapr binding so we can easily access database using Dapr
+    - configmap.yaml, with all the configuration variables
+    - deployment.yaml, Flask/python web logic  
+    - service.yaml - The k8s service in fromt of deployment
+    - secret-binding.yaml, K8S secret with database connection string
+    - secret-reader-role.yaml & secret-reader-rolebinding.yaml, role and role binding so python program can access secret
+    - openai-llm-model.yaml - Dapr alplha state componet to talk to OpenAI - In the near future Dapr will have one to talk to Ollama
+    - We use kustomize under k8s directory in order to be able to produce different customized values in DEV and PROD environmemts
+      - DEV:
+        - cd k8s
+        - Edit overlays/dev/kustomization.yaml and overlays/dev/patch-deployment.yaml with your custom values
+        - Exec: kustomize build overlays/dev  > overlays/dev/output_dev.yaml
+        - kubectl apply -f k8s/overlays/dev/overlays/dev/output_dev.yaml or config Tilfile in order to be able to execute overlays/dev/output_dev.yaml file
+      - PROD: - TODO not really implemented
+        - cd k8s
+        - Edit overlays/prod/kustomization.yaml and overlays/prod/patch-deployment.yaml with your custom values
+        - Exec: kustomize build overlays/prod  > overlays/rod/output_prod.yaml
+        - kubectl apply -f k8s/overlays/prod/overlays/prod/output_prod.yaml or use argocd for gitops
+
+  - Inside Dockerfile:
+    - python:3.12-alpine
+    - Scraper to be able to scrap Dapr web documentation
+    - We create the scraper project inside Dockerfile
+    - Dapr python sdk to read secrets and connect to postgresql binding - This makes application ease to migrate to other K8S environments with for example AWS secrets and other database. Also Dapr alplha state componet to talk to OpenAI - In the near future Dapr will have one to talk to Ollama
+    
+  - Inside Python logic:
+    - 1) User promt ask a question about Dapr.
+    - 2) The SLM inside OLLAMA to embed the user prompt. RAG database has SAME encoding all-minilm in vectorizer 
+We can not use OpenAI to create prompt embedding with our RAG database because OpenAI does not support all-minilm encoding.
+    - 3) Make a semantic search in pgAI vectorized database.
+    - 4) Give the result back to Ollama SLM to get a proper answer based on our own data. Alternatively, we can choose OpenAI to make the step 4) but requires you to recreate the fake OpenAI API_KEY.
+    - 5) If user says answer is good enough we save it in good_answers table that can be used to improve future semantic search. We could save  prompts, embedded, answers, timestamps and user.
+
+
+  - Tilt development environment: to sync directly python code from my IDE into k8s DEV environment, see [tilt api](https://docs.tilt.dev/api.html) and [example project](https://github.com/tilt-dev/pixeltilt):
+    - Tiltfile:  
+      - Adapt k8s_yaml inside Tilfile in order to be able to execute overlays/dev/output_dev.yaml 
+      - adpat docker_build inside Tiltfile in order to rebuild images inside local registry of MikroK8s
+    - Exec: "tilt up" to activate syncronization between your code and k8s containers
+
+# 5 - Troubleshooting
+
+- **Dapr sidecar does not shut down:**  
+  Ensure your job sends a shutdown signal as described in the [Dapr docs](https://docs.dapr.io/operations/hosting/kubernetes/kubernetes-job/).
+
+- **Cannot access secrets:**  
+  Make sure the `secret-reader-role` and `secret-reader-rolebinding` are correctly applied in your namespace.
+
+  Additionaly, to recreate an OpenAI API_KEY secret check in section 2) in this readme.
+
+- **How to check Flask messages:**
+```
+k -n agents get pods
+NAME                                   READY   STATUS      RESTARTS          AGE
+user-web-dapr-5dc54b6c74-8k7t5         2/2     Running     127 (4h28m ago)   15d
+
+k -n agents logs -f pods/user-web-dapr-5dc54b6c74-8k7t5  -c user-web-dapr
+
+```
+
+# 6 - Future enhancements - to do:
+My local LLM answers with the following  dictionary structure. For the User point of view,  it should be enough to show the response part but we can use the other parts to give a better service. See how:
+```
 {
  "model":"llama3.2:1b",
  "created_at":"2025-07-16T06:46:20.465278525Z",
@@ -38,8 +125,8 @@ Save values in DB -> Prometheus
  "eval_count":224,
  "eval_duration":34771308893
  }
-
- It's great you're exploring how to leverage the full potential of your local LLM's output! While the `response` field is what your users directly see, the other fields provide valuable metadata that professional services can absolutely utilize to enhance their offerings, improve user experience, and optimize their systems.
+```
+While the `response` field is what your users directly see, the other fields provide valuable metadata that professional services can absolutely utilize to enhance their offerings, improve user experience, and optimize their systems.
 
 Here's a breakdown of how professional services might use each part of that dictionary structure:
 

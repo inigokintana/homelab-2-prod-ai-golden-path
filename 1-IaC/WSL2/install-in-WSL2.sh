@@ -261,6 +261,9 @@ docker build -t localhost:32000/user-web-dapr:latest .
 # push the image to the local registry
 docker push localhost:32000/user-web-dapr:latest    
 # deploy the application into mikrok8s - create Dev environment
+# OpeanAI api key - Substitute it manually later and do not generate YAML not to get your OpenAI key exposed
+# we must set it knownow with a fake value otherwise user-web pod fails to start
+k -n agents create secret generic openai-api-key --from-literal=dapr=test-change-it
 k apply -f ./k8s/overlays/dev/output_dev.yaml
 # 5000 flask port forward
 k -n agents port-forward service/user-web-dapr 5000:80 &

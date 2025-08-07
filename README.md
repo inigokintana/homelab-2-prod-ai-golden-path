@@ -24,7 +24,7 @@ We explore concepts like AI agents, RAG and LLM using OSS technologies like Linu
 ├── 2-mandatory-k8s-services: mandatory services to install in K8S
 │   ├── dapr: distributed application runtime to standarized microservices and agent implementation
 │   ├── ollama: local LLM offering an API
-│   ├── timescaleDB: timesaries database based on postgreSQL with vector database support
+│   ├── timescaleDB: timesaries database based on postgreSQL with vector database support, our RAG database
 │   └── pgaiVectorizer: provides continuous embedding update on vector database
 ├── 3-dapr-microservices-agents: microservices and agents inserting data into database and passing it trought to LLM
 └── 4-optional-k8s-services: optional services to install in K8S

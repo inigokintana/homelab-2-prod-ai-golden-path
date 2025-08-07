@@ -33,6 +33,7 @@ AI agents RAG LLM Linux microk8s DAPR Ollama TimescaleDB Vectorizer Flask Python
 	3.3) Agents and MCP
 		https://www.cncf.io/blog/2025/03/12/announcing-dapr-ai-agents/
 		Data Science How to build MCP host Ai-agents
+		https://github.com/dapr/dapr-agents/blob/249ea5ec43f75825f662992e765cb09b5fd31695/README.md
 		https://github.com/dapr/dapr-agents/issues/50
 		https://github.com/dapr/dapr-agents/tree/main/cookbook/mcp
 		https://www.diagrid.io/blog/the-agentic-spectrum-why-its-not-agents-vs-workflows
