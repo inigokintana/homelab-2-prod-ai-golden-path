@@ -7,7 +7,7 @@ We explore concepts like AI agents, RAG and LLM using OSS technologies like Linu
 
 # 1 - Project structure:
 
-- **you tube VIDEO** **WIP**
+- **you tube VIDEO** **WIP coming soon**
 - **[PDF presentation slides](./docs/Presentation-homelab-2-prod-ai-golden-path.pdf)**
 
 ```

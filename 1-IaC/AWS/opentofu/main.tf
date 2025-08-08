@@ -13,7 +13,7 @@
 variable "sg_ip_cidr" {
   type    = string
   #default = "0.0.0.0/0" # anywhere 
-  default ="88.9.66.149/32" # my router public dinamyc IP, change it to your own convinience
+  default ="88.10.70.27/32" # my router public dinamyc IP, change it to your own convinience
 }
 
 # 2) Provider
@@ -58,63 +58,45 @@ resource "aws_security_group" "allow_ssh_k8s" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    #cidr_blocks = ["0.0.0.0/0"] #anywhere - you should put your router public IP x.y.x.y/32 here for improved security
+    #cidr_blocks = ["0.0.0.0/0"] #anywhere - you should put your router public IP x.y.x.y/32 in the var.sg_ip_cidr variable for improved security
     cidr_blocks = [var.sg_ip_cidr]
   }
   
-  # microk8s dashboard-proxy  port
-  # you could comment this and use ssh tunnel: ssh -L 10443:localhost:10443 ubuntu@instance_public_ip
-  ingress {
-    from_port   = 10443
-    to_port     = 10443
-    protocol    = "tcp"
-    cidr_blocks = [var.sg_ip_cidr]
-  }
+  # microk8s dashboard-proxy port 10443
+  # use ssh tunnel: ssh -i aipoc.pem -L 10443:localhost:10443 ubuntu@instance_public_i
 
-  # Ollama and the LLM&SLM inside
-  # you could comment this and use ssh tunnel: ssh -L 11434:localhost:11434 ubuntu@instance_public_ip
-  ingress {
-    from_port   = 11434
-    to_port     = 11434
-    protocol    = "tcp"
-    cidr_blocks = [var.sg_ip_cidr]
-  }
+  # Ollama and the LLM&SLM inside port 11434
+  # use ssh tunnel: ssh -i aipoc.pem  -L 11434:localhost:11434 ubuntu@instance_public_ip
+  # port forward must be running inside EC2: k -n ollama port-forward service/ollama 11434:80 &
 
-  # Postgres port for TimescaleDB and Vectorizer
-  # you could comment this and use ssh tunnel: ssh -L 15432:localhost:1154321434 ubuntu@instance_public_ip
-  ingress {
-    from_port   = 15432
-    to_port     = 15432
-    protocol    = "tcp"
-    cidr_blocks = [var.sg_ip_cidr]
-  }
+  # Postgres port for TimescaleDB and Vectorizer port 15432
+  # use ssh tunnel: ssh -i aipoc.pem  -L 15432:localhost:15432 ubuntu@instance_public_ip
+  # port forward must be running inside EC2: k -n pgvector port-forward service/pgvector 15432:5432 &
 
-  # Dapr dashboard port
-  # you could comment this and use ssh tunnel: ssh -L 9999:localhost:9999 ubuntu@instance_public_ip
-  ingress {
-    from_port   = 9999
-    to_port     = 9999
-    protocol    = "tcp"
-    cidr_blocks = [var.sg_ip_cidr]
-  }
+  # Dapr dashboard port 9999
+  # use ssh tunnel: ssh -i aipoc.pem  -L 9999:localhost:9999 ubuntu@instance_public_ip
 
-  # Flask user web app port
-  # you could comment this and use ssh tunnel: ssh -L 5000:localhost:5000 ubuntu@instance_public_ip
-  ingress {
-    from_port   = 5000
-    to_port     = 5000
-    protocol    = "tcp"
-    cidr_blocks = [var.sg_ip_cidr]
-  }
+  # Flask user web app port 5000
+  # use ssh tunnel: ssh -i aipoc.pem  -L 5000:localhost:5000 ubuntu@instance_public_ip
+  # port forward must be running inside EC2: k -n agents port-forward service/user-web-dapr 5000:80 &
 
-  # Tilt port
-  # you could comment this and use ssh tunnel: ssh -L 10350:localhost:10350 ubuntu@instance_public_ip
-  ingress {
-    from_port   = 10350
-    to_port     = 10350
-    protocol    = "tcp"
-    cidr_blocks = [var.sg_ip_cidr]
-  }
+  # Tilt port 10350
+  # use ssh tunnel: ssh -i aipoc.pem  -L 10350:localhost:10350 ubuntu@instance_public_ip
+
+  # Zipkin port 9411 :
+  # use ssh tunnel: ssh -i aipoc.pem  -L 9411:localhost:9411 ubuntu@instance_public_ip
+  #port forward must be running inside EC2: k -n default port-forward service/dapr-dev-zipkin 9411:9411 &
+
+  # All together in one ssh tunnel
+  /* 
+  ssh -i aipoc.pem \
+  -L 15432:localhost:15432 \
+  -L 9999:localhost:9999 \
+  -L 5000:localhost:5000 \
+  -L 10350:localhost:10350 \
+  -L 9411:localhost:9411 \
+  ubuntu@instance_public_ip
+  */
 
   egress {
     from_port   = 0
@@ -134,7 +116,7 @@ resource "aws_instance" "ubuntu2204" {
     volume_size = 50
     volume_type = "gp2"
   }
-  user_data = base64gzip(file("./userdata.sh"))
+  user_data_base64 = base64gzip(file("./userdata.sh"))
   tags = {
     Name = "ubuntu2204-microk8s"
     Opentofu   = "true"

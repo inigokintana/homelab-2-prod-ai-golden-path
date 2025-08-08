@@ -15,14 +15,14 @@ spec:
       labels:
         app: pgvector
       annotations:
-        # dapr.io/enabled: "true"
-        # dapr.io/app-id: "pgvector"
-        # dapr.io/enable-api-logging: "true"
-        # #dapr.io/config: "apppoems" # Tells Dapr which Configuration resource to use
-        # dapr.io/sidecar-inject: "true"
-        # dapr.io/sidecar-inject-annotation: "true"
-        # dapr.io/sidecar-liveness-probe-delay-second: "10"
-        # dapr.io/sidecar-liveness-probe-timeout-seconds: "70"
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "pgvector"
+        dapr.io/enable-api-logging: "true"
+        #dapr.io/config: "apppoems" # Tells Dapr which Configuration resource to use
+        dapr.io/sidecar-inject: "true"
+        dapr.io/sidecar-inject-annotation: "true"
+        dapr.io/sidecar-liveness-probe-delay-second: "10"
+        dapr.io/sidecar-liveness-probe-timeout-seconds: "70"
     spec:
       containers:
       - name: vectorizer-worker

@@ -266,6 +266,7 @@ docker push localhost:32000/user-web-dapr:latest
 k -n agents create secret generic openai-api-key --from-literal=dapr=test-change-it
 k apply -f ./k8s/overlays/dev/output_dev.yaml
 # 5000 flask port forward
+sleep 10 # wait for user-web to be ready
 k -n agents port-forward service/user-web-dapr 5000:80 &
 
 #####################################
@@ -348,5 +349,6 @@ echo "
 # Dapr Dashboard: http://localhost:9999
 # Flask user web: http://localhost:5000/ - k -n agents port-forward service/user-web-dapr 5000:80
 # Optional: Tilt : http://localhost:10350 
+# Zipkin tracing tool: http://localhost:9411 # see https://docs.dapr.io/operations/observability/tracing/zipkin/
 --Ports info--
 "

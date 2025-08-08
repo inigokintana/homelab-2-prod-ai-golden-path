@@ -5,7 +5,7 @@ resources:
   - ../../base
 
 configMapGenerator:
-  - name: dapr-scraper-config-dapr  
+  - name: dapr-scraper-config-dapr
     namespace: agents
     behavior: merge
     literals:
