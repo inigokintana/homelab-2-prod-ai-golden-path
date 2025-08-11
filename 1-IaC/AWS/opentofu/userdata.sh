@@ -245,7 +245,10 @@ psql -U postgres -d postgres -h localhost -p 15432 < ./sql/create-vectorized-tab
 # create local registry image -  build the image with microk8s docker
 docker build -t localhost:32000/injection-agent-web-dapr:latest .
 # push the image to the local registry
-docker push localhost:32000/injection-agent-web-dapr:latest    
+docker push localhost:32000/injection-agent-web-dapr:latest   
+# secret permision for the agent-web-dapr to access the database 
+k apply -f ./k8s/base/secret-reader-role.yaml
+k apply -f ./k8s/base/secret-reader-role-binding.yaml
 # deploy the application into mikrok8s - create Dev environment
 k apply -f ./k8s/overlays/dev/output_dev.yaml
 

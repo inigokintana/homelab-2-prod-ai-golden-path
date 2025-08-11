@@ -4,7 +4,7 @@
 # Deploy the Kubernetes resources defined in the k8s/ovelays/dev files
 #  k config current-context  -> microk8s
 k8s_yaml("k8s/overlays/dev/output_dev.yaml", allow_duplicates=True)
-k8s_resource('user-web-dapr', port_forwards='5000:5000',
+k8s_resource('user-web-dapr', port_forwards='5010:5000',
              resource_deps=['deploy'])
 
 # Records the current time, then kicks off a server update.
