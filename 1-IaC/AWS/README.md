@@ -90,9 +90,43 @@ tofu version
 
    ```bash
    ssh -i pocai.pem ubuntu@<instance_public_ip>
-   ```
 
-   You can also access the MicroK8s dashboard using its public IP and port `16443` (make sure to set up a password if required by MicroK8s).
+   # microk8s dashboard-proxy port 10443
+   # use ssh tunnel: ssh -i aipoc.pem -L 10443:localhost:10443 ubuntu@instance_public_i
+
+   # Ollama and the LLM&SLM inside port 11434
+   # use ssh tunnel: ssh -i aipoc.pem  -L 11434:localhost:11434 ubuntu@instance_public_ip
+   # port forward must be running inside EC2: k -n ollama port-forward service/ollama 11434:80 &
+
+   # Postgres port for TimescaleDB and Vectorizer port 15432
+   # use ssh tunnel: ssh -i aipoc.pem  -L 15432:localhost:15432 ubuntu@instance_public_ip
+   # port forward must be running inside EC2: k -n pgvector port-forward service/pgvector 15432:5432 &
+
+   # Dapr dashboard port 9999
+   # use ssh tunnel: ssh -i aipoc.pem  -L 9999:localhost:9999 ubuntu@instance_public_ip
+
+   # Flask user web app port 5000
+   # use ssh tunnel: ssh -i aipoc.pem  -L 5000:localhost:5000 ubuntu@instance_public_ip
+   # port forward must be running inside EC2: k -n agents port-forward service/user-web-dapr 5000:80 &
+
+   # Tilt port 10350
+   # use ssh tunnel: ssh -i aipoc.pem  -L 10350:localhost:10350 ubuntu@instance_public_ip
+
+   # Zipkin port 9411 :
+   # use ssh tunnel: ssh -i aipoc.pem  -L 9411:localhost:9411 ubuntu@instance_public_ip
+   #port forward must be running inside EC2: k -n default port-forward service/dapr-dev-zipkin 9411:9411 &
+
+   # All together in one ssh tunnel
+   
+   ssh -i aipoc.pem \
+   -L 15432:localhost:15432 \
+   -L 9999:localhost:9999 \
+   -L 5000:localhost:5000 \
+   -L 10350:localhost:10350 \
+   -L 9411:localhost:9411 \
+   ubuntu@instance_public_ip
+
+   ```
 
 
 

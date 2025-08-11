@@ -57,7 +57,7 @@ spec:
                 name: dapr-scraper-config-dapr
             - secretRef:
                 name: pg-secret-dapr
-            image: localhost:32000/my-scraper-image-dapr:latest  # Replace with your image
+            image: localhost:32000/injection-agent-web-dapr:latest  # Replace with your image
             imagePullPolicy: IfNotPresent
             name: scraper
           restartPolicy: OnFailure

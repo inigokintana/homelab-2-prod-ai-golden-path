@@ -13,7 +13,7 @@
 variable "sg_ip_cidr" {
   type    = string
   #default = "0.0.0.0/0" # anywhere 
-  default ="88.10.70.27/32" # my router public dinamyc IP, change it to your own convinience
+  default ="88.10.70.191/32" # my router public dinamyc IP, change it to your own convinience
 }
 
 # 2) Provider
@@ -51,7 +51,7 @@ data "aws_key_pair" "tf" {
 # Define the security group to allow SSH, Kubernetes ports and some other services
 resource "aws_security_group" "allow_ssh_k8s" {
   name        = "allow_ssh_k8s"
-  description = "Allow SSH, Kubernetes ports and additional services"
+  description = "Allow SSH only from restricted ip"
   
   # ssh
   ingress {
@@ -61,42 +61,7 @@ resource "aws_security_group" "allow_ssh_k8s" {
     #cidr_blocks = ["0.0.0.0/0"] #anywhere - you should put your router public IP x.y.x.y/32 in the var.sg_ip_cidr variable for improved security
     cidr_blocks = [var.sg_ip_cidr]
   }
-  
-  # microk8s dashboard-proxy port 10443
-  # use ssh tunnel: ssh -i aipoc.pem -L 10443:localhost:10443 ubuntu@instance_public_i
 
-  # Ollama and the LLM&SLM inside port 11434
-  # use ssh tunnel: ssh -i aipoc.pem  -L 11434:localhost:11434 ubuntu@instance_public_ip
-  # port forward must be running inside EC2: k -n ollama port-forward service/ollama 11434:80 &
-
-  # Postgres port for TimescaleDB and Vectorizer port 15432
-  # use ssh tunnel: ssh -i aipoc.pem  -L 15432:localhost:15432 ubuntu@instance_public_ip
-  # port forward must be running inside EC2: k -n pgvector port-forward service/pgvector 15432:5432 &
-
-  # Dapr dashboard port 9999
-  # use ssh tunnel: ssh -i aipoc.pem  -L 9999:localhost:9999 ubuntu@instance_public_ip
-
-  # Flask user web app port 5000
-  # use ssh tunnel: ssh -i aipoc.pem  -L 5000:localhost:5000 ubuntu@instance_public_ip
-  # port forward must be running inside EC2: k -n agents port-forward service/user-web-dapr 5000:80 &
-
-  # Tilt port 10350
-  # use ssh tunnel: ssh -i aipoc.pem  -L 10350:localhost:10350 ubuntu@instance_public_ip
-
-  # Zipkin port 9411 :
-  # use ssh tunnel: ssh -i aipoc.pem  -L 9411:localhost:9411 ubuntu@instance_public_ip
-  #port forward must be running inside EC2: k -n default port-forward service/dapr-dev-zipkin 9411:9411 &
-
-  # All together in one ssh tunnel
-  /* 
-  ssh -i aipoc.pem \
-  -L 15432:localhost:15432 \
-  -L 9999:localhost:9999 \
-  -L 5000:localhost:5000 \
-  -L 10350:localhost:10350 \
-  -L 9411:localhost:9411 \
-  ubuntu@instance_public_ip
-  */
 
   egress {
     from_port   = 0

@@ -9,4 +9,4 @@ spec:
     spec:
       containers:
         - name: 2-injection-agent-web
-          image: localhost:32000/my-scraper-image-dapr:latest # Replace with your image
+          image: localhost:32000//injection-agent-web-dapr:latest # Replace with your image
