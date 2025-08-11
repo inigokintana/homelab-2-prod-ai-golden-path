@@ -14,3 +14,4 @@ ensuring that the agent only processes fresh content.
 
     ALTER TABLE dapr_web ADD COLUMN lastupdate DATE;
     -- update dapr_web  set lastupdate =  CURRENT_DATE - INTERVAL '8 days';
+    insert into dapr_web (url, text, lastupdate) values ('https://example.com', 'Example content', CURRENT_DATE - INTERVAL '90 days');

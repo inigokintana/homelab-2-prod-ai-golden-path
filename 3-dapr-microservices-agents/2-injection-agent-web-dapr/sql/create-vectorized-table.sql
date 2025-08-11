@@ -29,12 +29,15 @@
 CREATE EXTENSION IF NOT EXISTS vectorscale CASCADE;
 -- CREATE EXTENSION IF NOT EXISTS ai CASCADE;
 
+-- Create the vectorizer for the dapr_web table in pgAI 0.9.0 and earlier
+/*
   SELECT ai.create_vectorizer(     
     'dapr_web'::regclass,     
     destination => 'dapr_web_embeddings',     
     embedding => ai.embedding_ollama('all-minilm', 384),     
     chunking => ai.chunking_recursive_character_text_splitter('text'));
-
+*/
+-- Create the vectorizer for the dapr_web table in pgAI 0.10.0 and later
 SELECT ai.create_vectorizer(     
     'dapr_web'::regclass, 
     loading => ai.loading_column('text'),
