@@ -20,6 +20,7 @@ spec:
         dapr.io/sidecar-inject-annotation: "true"
         dapr.io/sidecar-liveness-probe-delay-second: "180" # it takes some time to create ollama container
         dapr.io/sidecar-liveness-probe-timeout-seconds: "300"
+        dapr.io/config: "tracing" # zipkin tracing configuration
     spec:
       containers:
       - name: ollama-llm

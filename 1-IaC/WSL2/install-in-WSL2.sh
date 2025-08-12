@@ -155,6 +155,14 @@ dapr status -k
 #Dapr provides a dashboard to monitor and interact with the services running in the cluster. To access the dashboard, run:
 dapr dashboard -k -p 9999 &
 
+# install zipkin to get tracing information
+# Zipkin is a distributed tracing system that helps gather timing data needed to troubleshoot latency problems in microservice architectures.
+# It provides a way to collect and visualize trace data from distributed systems, making it easier to identify performance bottlenecks and understand the flow of requests through the system.
+# See https://zipkin.io/
+# Enable zipkin tracing in Dapr
+cd /home/ubuntu/homelab-2-prod-ai-golden-path/2-mandatory-k8s-services/zipkin
+k apply -f zipkin.yaml
+
 ########################################
 # 5 - Install mandatory k8s services
 ########################################

@@ -48,6 +48,7 @@ spec:
             dapr.io/enabled: "true"
             dapr.io/sidecar-inject: "true"
             dapr.io/sidecar-inject-annotation: "true"
+            dapr.io/config: "tracing" # zipkin tracing configuration
           labels:
             app: dapr-sdk-docs-scraper
         spec:

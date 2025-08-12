@@ -19,9 +19,9 @@ spec:
             dapr.io/enabled: "true"
             dapr.io/app-id: "dapr-sdk-docs-scraper"
             dapr.io/enable-api-logging: "true"
-            # dapr.io/config: "dapr-sdk-docs-scraper" # Tells Dapr which Configuration resource to use
             dapr.io/sidecar-inject: "true"
             dapr.io/sidecar-inject-annotation: "true"
+            dapr.io/config: "tracing" # zipkin tracing configuration
         spec:
           restartPolicy: OnFailure
           containers:
