@@ -1,5 +1,4 @@
 .vscode
-.venv
 1-IaC/AWS/opentofu/.terraform
 1-IaC/AWS/opentofu/.terraform.lock.hcl
 1-IaC/AWS/opentofu/terraform.tfstate*

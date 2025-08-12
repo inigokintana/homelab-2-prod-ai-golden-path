@@ -155,13 +155,34 @@ dapr status -k
 #Dapr provides a dashboard to monitor and interact with the services running in the cluster. To access the dashboard, run:
 dapr dashboard -k -p 9999 &
 
-# install zipkin to get tracing information
+## 4.1 - Configure zipkin and install prometheus to help dapr monitoring
+########
+# we must configure zipkin in advance before any other mandatory service or agent, daprd sidecar goes crazy otherwise
+# so we install prometheus to keep monitoring together
+
+## 4.1.a - install zipkin to get tracing information
 # Zipkin is a distributed tracing system that helps gather timing data needed to troubleshoot latency problems in microservice architectures.
 # It provides a way to collect and visualize trace data from distributed systems, making it easier to identify performance bottlenecks and understand the flow of requests through the system.
 # See https://zipkin.io/
 # Enable zipkin tracing in Dapr
-cd /home/ubuntu/homelab-2-prod-ai-golden-path/2-mandatory-k8s-services/zipkin
+cd ~/homelab-2-prod-ai-golden-path/4-optional-k8s-services/zipkin
 k apply -f zipkin.yaml
+
+## 4.1.b install prometheus for dapr metrics
+# Prometheus is an open-source monitoring and alerting toolkit designed for reliability and scalability.
+# https://docs.dapr.io/operations/observability/metrics/prometheus/
+cd ~/homelab-2-prod-ai-golden-path/4-optional-k8s-services/prometheus
+# k apply -f namespace.yaml
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+#For automatic discovery of Dapr targets (Service Discovery), use
+helm install dapr-prom prometheus-community/prometheus -f values.yaml -n dapr-monitoring --create-namespace --set prometheus-node-exporter.hostRootFsMount.enabled=false
+# Ensure Prometheus is running in your cluster.
+k get pods -n dapr-monitoring
+#To view the Prometheus dashboard and check service discovery:
+k port-forward svc/dapr-prom-prometheus-server 9090:80 -n dapr-monitoring &
+# Get he t the Alertmanager service to monitor alerts
+k port-forward svc/dapr-prom-alertmanager 9093:9093 -n dapr-monitoring &
 
 ########################################
 # 5 - Install mandatory k8s services

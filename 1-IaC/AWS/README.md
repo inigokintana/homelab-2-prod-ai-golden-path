@@ -116,6 +116,15 @@ tofu version
    # use ssh tunnel: ssh -i aipoc.pem  -L 9411:localhost:9411 ubuntu@instance_public_ip
    #port forward must be running inside EC2: k -n default port-forward service/dapr-dev-zipkin 9411:9411 &
 
+   # Prometheus port 9090 :
+   # use ssh tunnel: ssh -i aipoc.pem  -L 9090:localhost:9090 ubuntu@instance_public_ip
+   # port forward must be running inside EC2: k port-forward svc/dapr-prom-prometheus-server 9090:80 -n dapr-monitoring &
+   
+   
+   # Prometheus Alertmanager 9093
+   # use ssh tunnel: ssh -i aipoc.pem  -L 9093:localhost:9093 ubuntu@instance_public_ip
+   # port forward must be running inside EC2: k port-forward svc/dapr-prom-alertmanager 9093:9093 -n dapr-monitoring &
+
    # All together in one ssh tunnel
    
    ssh -i aipoc.pem \
@@ -124,6 +133,8 @@ tofu version
    -L 5000:localhost:5000 \
    -L 10350:localhost:10350 \
    -L 9411:localhost:9411 \
+   -L 9090:localhost:9090 \
+   -L 9093:localhost:9093 \
    ubuntu@instance_public_ip
 
    ```
