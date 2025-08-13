@@ -125,6 +125,10 @@ tofu version
    # use ssh tunnel: ssh -i aipoc.pem  -L 9093:localhost:9093 ubuntu@instance_public_ip
    # port forward must be running inside EC2: k port-forward svc/dapr-prom-alertmanager 9093:9093 -n dapr-monitoring &
 
+   # Grafana 8080
+   # use ssh tunnel: ssh -i aipoc.pem  -L 8080:localhost:8080 ubuntu@instance_public_ip
+   # port forward must be running inside EC2: k port-forward svc/dapr-prom-alertmanager 8080:80 -n dapr-monitoring &
+
    # All together in one ssh tunnel
    
    ssh -i aipoc.pem \
@@ -135,6 +139,7 @@ tofu version
    -L 9411:localhost:9411 \
    -L 9090:localhost:9090 \
    -L 9093:localhost:9093 \
+   -L 8080:localhost:8080 \
    ubuntu@instance_public_ip
 
    ```

@@ -154,10 +154,10 @@ dapr status -k
 #Dapr provides a dashboard to monitor and interact with the services running in the cluster. To access the dashboard, run:
 dapr dashboard -k -p 9999 &
 
-## 4.1 - Configure zipkin and install prometheus to help dapr monitoring
+## 4.1 - Configure zipkin and install prometheus&grafana to help dapr monitoring
 ########
 # we must configure zipkin in advance before any other mandatory service or agent, daprd sidecar goes crazy otherwise
-# so we install prometheus to keep monitoring together
+# so we install prometheus&grafana to keep monitoring together
 
 ## 4.1.a - install zipkin to get tracing information
 # Zipkin is a distributed tracing system that helps gather timing data needed to troubleshoot latency problems in microservice architectures.
@@ -182,6 +182,22 @@ k get pods -n dapr-monitoring
 k port-forward svc/dapr-prom-prometheus-server 9090:80 -n dapr-monitoring &
 # Get he t the Alertmanager service to monitor alerts
 k port-forward svc/dapr-prom-alertmanager 9093:9093 -n dapr-monitoring &
+
+## 4.1.c install grafana for dapr metrics
+# Grafana is an open-source platform for monitoring and observability that provides a powerful and flexible way to visualize and analyze metrics, logs, and traces from various data sources.
+# https://docs.dapr.io/operations/observability/metrics/grafana/
+# Add the Grafana Helm repo:
+helm repo add grafana https://grafana.github.io/helm-charts
+helm repo update
+# Install the chart - dev persistence disabled
+helm install grafana grafana/grafana -n dapr-monitoring --set persistence.enabled=false
+# Retrieve the admin password for Grafana login:
+k get secret --namespace dapr-monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+echo "You will get a password similar to cj3m0OfBNx8SLzUlTx91dEECgzRlYJb60D2evof1%. If at the end there is % character remove it from the password to get cj3m0OfBNx8SLzUlTx91dEECgzRlYJb60D2evof1 as the admin password."
+# Validation Grafana is running in your cluster:
+k get pods -n dapr-monitoring
+# To access the Grafana dashboard, you can use port forwarding:
+k port-forward svc/grafana 8080:80 -n dapr-monitoring &
 
 ########################################
 # 5 - Install mandatory k8s services
@@ -391,11 +407,10 @@ echo "
 # Dapr Dashboard: http://localhost:9999
 # Flask user web: http://localhost:5000/ - k -n agents port-forward service/user-web-dapr 5000:80
 # Optional: Tilt : http://localhost:10350 
-# Monitoring
+# ##Monitoring##
 # Zipkin tracing tool: http://localhost:9411 # see https://docs.dapr.io/operations/observability/tracing/zipkin/
-# To view the Prometheus dashboard and check service discovery:
 # Prometheus: http://localhost:9090 - k port-forward svc/dapr-prom-prometheus-server 9090:80 -n dapr-monitoring &
-# Get he t the Alertmanager service to monitor alerts
-# Prometheus: http://localhost:9093 - k port-forward svc/dapr-prom-alertmanager 9093:9093 -n dapr-monitoring &
+# Prometheus Alertmanager: http://localhost:9093 - k port-forward svc/dapr-prom-alertmanager 9093:9093 -n dapr-monitoring &
+# Grafana: http://localhost:8080 - kubectl port-forward svc/grafana 8080:80 -n dapr-monitoring &
 --Ports info--
 "
