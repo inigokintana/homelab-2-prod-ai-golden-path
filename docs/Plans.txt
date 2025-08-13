@@ -2,16 +2,42 @@ homelab-2-prod-ai-golden-path
 *******************************
 
 Pending:
-- OpenTofu AWS warning - done
+- Optimizing perf - cpu bottleneck - chek in AWS
 - OpenTofu Hetzner - doing
 - Dapr Ai agents & MCP
-- Zipkin /prometheus
-- cronjob schedule problem review
-    decribe cronjob
-	image name wrong localhost:32000/my-scraper-image-dapr:latest
-	spec:
-		backoffLimit: 10
-- clear intermediate pods in K8s lab wsl2
 - Video / script / Demo
+- sanitize code - logging
+- Nginx ingress - too many ports??
+
+pgrep kubectl | xargs kill -9
 
 
+
+
+- what would you use inside kubernetes for ai agents, semantic kernel or dapr?
+thanks but have you considered dapr has workflow capabilities?
+
+Dapr = infrastructure glue → Makes your AI agent connect to services seamlessly.
+Semantic Kernel = agent brain wiring → Makes your AI agent think and remember in structured ways.
+In practice, they are complementary, not competing.
+
+
+Goal	Best pick
+Need your AI agent to orchestrate multiple LLM calls, manage prompts/memory	Semantic Kernel
+Need your AI agent to talk to databases, queues, APIs, and survive service changes without rewrites	Dapr
+Need both orchestration & infra glue	Run SK inside a Dapr-enabled microservice
+Dapr’s Workflow API changes the picture a bit because it means you could, in theory, build an “AI agent” purely in Dapr without Semantic Kernel if your orchestration needs are more event-driven than reasoning-driven.
+thanks but have you considered dapr has workflow capabilities?
+
+Semantic Kernel and LangChain
+https://lfaidata.foundation/blog/2024/04/23/generative-ai-development-is-going-cloud-native-and-open-source-how-to-make-sense-of-it-and-whats-next/
+*****+
+
+can you explain me when to use Dapr Workflows vs semantic kernel vs Google A2A protocol for agent coordination?
+
+Situation	Best Choice
+You need reliable, stateful execution of multi-step processes (minutes–days), with retries & durability	Dapr Workflows
+You need LLM-driven decision-making & function chaining	Semantic Kernel
+You need agents from different frameworks/vendors to talk to each other	Google A2A
+You need both reliability & reasoning	SK inside a Dapr Workflow (hybrid)
+You need cross-vendor AI ecosystems	A2A with Dapr or SK as the local orchestrator

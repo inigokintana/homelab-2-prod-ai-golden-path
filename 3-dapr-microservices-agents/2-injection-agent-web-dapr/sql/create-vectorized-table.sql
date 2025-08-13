@@ -35,7 +35,7 @@ CREATE EXTENSION IF NOT EXISTS vectorscale CASCADE;
     'dapr_web'::regclass,     
     destination => 'dapr_web_embeddings',     
     embedding => ai.embedding_ollama('all-minilm', 384),     
-    chunking => ai.chunking_recursive_character_text_splitter('text'));
+    chunking => ai.chunking_recursive_character_text_splitter('text',chunk_size => 300,chunk_overlap => 50));
 */
 -- Create the vectorizer for the dapr_web table in pgAI 0.10.0 and later
 SELECT ai.create_vectorizer(     

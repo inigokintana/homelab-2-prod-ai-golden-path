@@ -9,7 +9,6 @@ Unlike Kind or minikube, **mikroK8s** is intended for production workloads as an
 
 Additionally, we will have to execute previously mentioned shell script to configure the VM with all the required services inside VM.
  
-
 # 2. System requirements
 - OLLAMA's LLM inside requires quite a lot of run despite selecting being a SLM (Small Language Model). 
 - We will need a t4g.large(2 vCPU - 8 GB RAM) or t4g.xlarge(4 vCPU -16 GB RAM) VM
@@ -144,14 +143,11 @@ tofu version
 
    ```
 
-
-
 ## 3.4 - Check userdata shell script output and re-execute partially if needed
 
 While the EC2 instance is been initialized or after (all status checks are passed), you can verify what the user_data script did in the log file located at "tail -f /var/log/cloud-init-output.log".
 
 If something fails, you may re-execute it partially or totally if needed, userdata.sh file is in this git repo but you can also see it inside AWS instance with "sudo cat /var/lib/cloud/instance/user-data.txt"
-
 
 # 4 - Breakdown of the Configuration chosen in Opentofu
 
@@ -184,8 +180,6 @@ If something fails, you may re-execute it partially or totally if needed, userda
 5. **Outputs**: The public and private IP addresses of the instance are outputted after the instance is created, which can be useful for connecting to the instance or accessing the MicroK8s dashboard.
 
 
-
-
 ## 5 - Play with the config:
 
 - As mentioned before, adapt Opentofu script to include shell scripts steps 4), 5) and 6) to use kubectl & helm providers.
@@ -193,7 +187,6 @@ If something fails, you may re-execute it partially or totally if needed, userda
 **Important NOTICE about IaC**: shell script does not properly manage the state so it is very basic IaC.  OpenTofu, on the other hand, is fully compliant IaC as it is built with State tracking, Idempotence (safe to re-run), Dependency graph, Rollback support, Plan before apply and is Modular & composable. Please, if you go to PROD consider migrating some steps of the shell script into OpenTofu, for example:
 - Step 4 install Dapr with Helm with [OpenTofu Helm provider](https://search.opentofu.org/provider/opentofu/helm/latest)
 - All the kubectl apply commands in steps 5 and 6, install them with [OpenTofu Kubectl Provider](https://search.opentofu.org/provider/opentofu/kubernetes/v2.0.0)
-
 
 
 # 6 - Final notes
