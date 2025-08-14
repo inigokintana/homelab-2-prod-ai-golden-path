@@ -69,7 +69,15 @@ sudo apt-get install -y kubectl
 # Verify
 kubectl version --client
 
-## 2.3 - Install git
+## 2.3 - Install Helm
+# Helm is a package manager for Kubernetes that simplifies the deployment and management of applications in Kubernetes clusters
+########
+# The default Ubuntu repositories do not yet provide the Helm package
+# https://cloudcone.com/docs/article/how-to-install-helm-on-ubuntu-22-04/
+sudo snap install helm --classic
+helm version
+
+## 2.4 - Install git
 # Deploy git and clone the repo
 ########
 sudo apt-get install git -y
@@ -103,6 +111,8 @@ cd /home/ubuntu
 mkdir /home/ubuntu/.kube
 sudo cp -p /var/snap/microk8s/current/credentials/client.config .kube/config
 sudo chown ubuntu:microk8s .kube/config
+# for helm root .kube/config is necesary
+sudo su -c "microk8s config > /root/.kube/config"
 # This command starts a proxy to the Kubernetes Dashboard UI in the background
 # it will be available at https://127.0.0.1:10443
 sudo microk8s dashboard-proxy &
@@ -154,10 +164,10 @@ dapr status -k
 #Dapr provides a dashboard to monitor and interact with the services running in the cluster. To access the dashboard, run:
 dapr dashboard -k -p 9999 &
 
-## 4.1 - Configure zipkin and install prometheus to help dapr monitoring
+## 4.1 - Configure zipkin and install prometheus&grafana to help dapr monitoring
 ########
 # we must configure zipkin in advance before any other mandatory service or agent, daprd sidecar goes crazy otherwise
-# so we install prometheus to keep monitoring together
+# so we install prometheus&grafana to keep monitoring together
 
 ## 4.1.a - install zipkin to get tracing information
 # Zipkin is a distributed tracing system that helps gather timing data needed to troubleshoot latency problems in microservice architectures.
@@ -172,12 +182,13 @@ k apply -f zipkin.yaml
 # https://docs.dapr.io/operations/observability/metrics/prometheus/
 cd /home/ubuntu/homelab-2-prod-ai-golden-path/4-optional-k8s-services/prometheus
 # k apply -f namespace.yaml
-helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-helm repo update
+sudo helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+sudo helm repo update
 #For automatic discovery of Dapr targets (Service Discovery), use
-helm install dapr-prom prometheus-community/prometheus -f values.yaml -n dapr-monitoring --create-namespace --set prometheus-node-exporter.hostRootFsMount.enabled=false
+sudo helm install dapr-prom prometheus-community/prometheus -f values.yaml -n dapr-monitoring --create-namespace --set prometheus-node-exporter.hostRootFsMount.enabled=false
 # Ensure Prometheus is running in your cluster.
 k get pods -n dapr-monitoring
+sleep 10  
 #To view the Prometheus dashboard and check service discovery:
 k port-forward svc/dapr-prom-prometheus-server 9090:80 -n dapr-monitoring &
 # Get he t the Alertmanager service to monitor alerts
@@ -187,15 +198,16 @@ k port-forward svc/dapr-prom-alertmanager 9093:9093 -n dapr-monitoring &
 # Grafana is an open-source platform for monitoring and observability that provides a powerful and flexible way to visualize and analyze metrics, logs, and traces from various data sources.
 # https://docs.dapr.io/operations/observability/metrics/grafana/
 # Add the Grafana Helm repo:
-helm repo add grafana https://grafana.github.io/helm-charts
-helm repo update
+sudo helm repo add grafana https://grafana.github.io/helm-charts
+sudo helm repo update
 # Install the chart - dev persistence disabled
-helm install grafana grafana/grafana -n dapr-monitoring --set persistence.enabled=false
+sudo helm install grafana grafana/grafana -n dapr-monitoring --set persistence.enabled=false
 # Retrieve the admin password for Grafana login:
 k get secret --namespace dapr-monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
 echo "You will get a password similar to cj3m0OfBNx8SLzUlTx91dEECgzRlYJb60D2evof1%. If at the end there is % character remove it from the password to get cj3m0OfBNx8SLzUlTx91dEECgzRlYJb60D2evof1 as the admin password."
 # Validation Grafana is running in your cluster:
 k get pods -n dapr-monitoring
+sleep 10  
 # To access the Grafana dashboard, you can use port forwarding:
 k port-forward svc/grafana 8080:80 -n dapr-monitoring &
 
@@ -290,7 +302,7 @@ psql -U postgres -d postgres -h localhost -p 15432 < ./sql/create-vectorized-tab
 # create local registry image -  build the image with microk8s docker
 docker build -t localhost:32000/injection-agent-web-dapr:latest .
 # push the image to the local registry
-docker push localhost:32000/injection-agent-web-dapr:latest    
+docker push localhost:32000/injection-agent-web-dapr:latest   
 # deploy the application into mikrok8s - create Dev environment
 k apply -f ./k8s/overlays/dev/output_dev.yaml
 # secret permision for the agent-web-dapr to access the database 
@@ -409,6 +421,7 @@ echo "
 # Optional: Tilt : http://localhost:10350 
 # ##Monitoring##
 # Zipkin tracing tool: http://localhost:9411 # see https://docs.dapr.io/operations/observability/tracing/zipkin/
+#                                             - k -n default port-forward service/dapr-dev-zipkin 9411:9411 &
 # Prometheus: http://localhost:9090 - k port-forward svc/dapr-prom-prometheus-server 9090:80 -n dapr-monitoring &
 # Prometheus Alertmanager: http://localhost:9093 - k port-forward svc/dapr-prom-alertmanager 9093:9093 -n dapr-monitoring &
 # Grafana: http://localhost:8080 - kubectl port-forward svc/grafana 8080:80 -n dapr-monitoring &

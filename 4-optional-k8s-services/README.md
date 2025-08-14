@@ -41,6 +41,9 @@
 - One Place for Code + Experiments: you can iterate on chunking strategies, embeddings, prompt engineering, and query pipelines all in one interactive environment.
 - Reproducibility: notebooks can serve as “AI experiment logs” where each cell documents exactly what you tried.
 - Leverage K8s Resources: you can give the Jupyter Pod more CPU/RAM or even GPU if you add one to your node.
+- See [link] ()
+
+**MLflow**: requires less memory than Kubeflow and it is better for exploratory experiments in ML area. See [link](https://mlflow.org/docs/latest/ml/deployment/deploy-model-to-kubernetes/tutorial/)
 
 **GitOps ArgoCD?**
-When we have more AI agents may be ---
+When we have more AI agents may be ...

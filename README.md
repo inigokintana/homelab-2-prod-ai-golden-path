@@ -22,9 +22,9 @@ We explore concepts like AI agents, RAG and LLM using OSS technologies like Linu
 ├── 3-dapr-microservices-agents: microservices and agents inserting data into database and passing it trought to LLM
 │   ├── 1-user-web
 │   ├── 2-injection-agent-web-dapr
-│   ├── 3-injection-agent-docs  **WIP*
-│   ├── 4-MCP  **WIP*
-└── 4-optional-k8s-services: optional services to install in K8S **WIP*
+│   ├── 3-injection-agent-docs  **Pending**
+│   ├── 4-MCP  **Pending**
+└── 4-optional-k8s-services: monitoring with Zipkin, Prometheus & Grafana. **Pending**: Jupiter Noterbooks, MLflow, ArgoCD
 └── Docs
 ``` 
 # 2 - Install
