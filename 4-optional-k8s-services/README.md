@@ -36,12 +36,12 @@
    
 
 # 2 - Probable next steps: **WIP*
-**Jupiter notebook**
+**Jupyter notebook**
 - Direct Access to Your RAG DB: you can connect from notebooks directly to your pgvector/pgai database inside the same cluster.
 - One Place for Code + Experiments: you can iterate on chunking strategies, embeddings, prompt engineering, and query pipelines all in one interactive environment.
 - Reproducibility: notebooks can serve as “AI experiment logs” where each cell documents exactly what you tried.
 - Leverage K8s Resources: you can give the Jupyter Pod more CPU/RAM or even GPU if you add one to your node.
-- See [link] ()
+- See [link] (https://cloudyuga.guru/blogs/empowering-data-science-running-jupyter-notebooks-at-scale-with-kubernetes/)
 
 **MLflow**: requires less memory than Kubeflow and it is better for exploratory experiments in ML area. See [link](https://mlflow.org/docs/latest/ml/deployment/deploy-model-to-kubernetes/tutorial/)
 

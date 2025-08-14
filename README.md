@@ -24,7 +24,7 @@ We explore concepts like AI agents, RAG and LLM using OSS technologies like Linu
 │   ├── 2-injection-agent-web-dapr
 │   ├── 3-injection-agent-docs  **Pending**
 │   ├── 4-MCP  **Pending**
-└── 4-optional-k8s-services: monitoring with Zipkin, Prometheus & Grafana. **Pending**: Jupiter Noterbooks, MLflow, ArgoCD
+└── 4-optional-k8s-services: monitoring with Zipkin, Prometheus & Grafana. **Pending**: Jupyter Notebooks, MLflow, ArgoCD
 └── Docs
 ``` 
 # 2 - Install
