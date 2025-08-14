@@ -47,7 +47,7 @@ echo \
 sudo apt update
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io
 # Optional: Add your user to the docker group
-sudo usermod -aG docker ubuntu
+# sudo usermod -aG docker ubuntu  <- Hetzner user is root in cloudinit
 
 ## 2.2 - kubectl
 # kubectl is the command-line tool for interacting with Kubernetes clusters.
@@ -81,7 +81,7 @@ helm version
 # Deploy git and clone the repo
 ########
 sudo apt-get install git -y
-cd /home/ubuntu
+cd /root #cd /home/ubuntu - Hetzner user is root in cloudinit
 git clone https://github.com/inigokintana/homelab-2-prod-ai-golden-path.git
 
 ######################
