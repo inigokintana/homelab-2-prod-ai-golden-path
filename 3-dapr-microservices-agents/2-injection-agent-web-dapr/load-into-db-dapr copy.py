@@ -1,5 +1,4 @@
 import json
-import logging
 import re
 import requests
 import xml.etree.ElementTree as ET
@@ -11,30 +10,6 @@ import time
 # --- DAPR SDK IMPORTS ---
 from dapr.clients import DaprClient
 # --- END DAPR SDK IMPORTS ---
-
-# ---------------------------------------------------
-# Configure logging from environment variable
-# ---------------------------------------------------
-LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
-
-# Map string to logging level (default INFO if invalid)
-LEVELS = {
-    "DEBUG": logging.DEBUG,
-    "INFO": logging.INFO,
-    "WARNING": logging.WARNING,
-    "ERROR": logging.ERROR,
-    "CRITICAL": logging.CRITICAL,
-}
-log_level = LEVELS.get(LOG_LEVEL, logging.INFO)
-
-logging.basicConfig(
-    level=log_level,
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-    handlers=[logging.StreamHandler()]
-)
-
-logger = logging.getLogger(__name__)
-# ---------------------------------------------------
 
 # --- CONFIG ---
 DB_TABLE = os.getenv("DB_TABLE", "dapr_web") # Table to insert data into
@@ -71,25 +46,20 @@ def get_first_sitemap_date(sitemap_url):
             if lastmod_element is not None:
                 return lastmod_element.text
             else:
-                #print("No <lastmod> element found within the first <url>.")
-                logger.warning("No <lastmod> element found within the first <url> in the sitemap.")
+                print("No <lastmod> element found within the first <url>.")
                 return None
         else:
-            #print("No <url> element found in the sitemap.")
-            logger.warning("No <url> element found in the sitemap.")    
+            print("No <url> element found in the sitemap.")
             return None
 
     except requests.exceptions.RequestException as e:
-        #print(f"Error fetching the sitemap: {e}")
-        logger.error(f"Error fetching the sitemap: {e}")
+        print(f"Error fetching the sitemap: {e}")
         return None
     except ET.ParseError as e:
-        #print(f"Error parsing the XML content: {e}")
-        logger.error(f"Error parsing the XML content: {e}")
+        print(f"Error parsing the XML content: {e}")
         return None
     except Exception as e:
-        #print(f"An unexpected error occurred: {e}")
-        logger.error(f"An unexpected error occurred: {e}")
+        print(f"An unexpected error occurred: {e}")
         return None
 
 def get_db_date(db_table):
@@ -105,23 +75,17 @@ def get_db_date(db_table):
         sqlCmd = ('SELECT lastupdate FROM {db_table} ORDER BY lastupdate DESC LIMIT 1;'.format(db_table=db_table))
         payload = {'sql': sqlCmd}
 
-        #print(sqlCmd, flush=True)
-        #print("Querying the database for the most recent 'lastupdate' date via Dapr SDK...", flush=True)
-        logger.info(f"Querying the database for the most recent 'lastupdate' date via Dapr SDK: {sqlCmd}")
+        print(sqlCmd, flush=True)
 
         try:
         # Select using Dapr output binding via HTTP Post
             resp = d.invoke_binding(binding_name=DAPR_BINDING_NAME, operation='query',
                                      binding_metadata=payload)
-            #print(resp, flush=True)
-            logger.debug(f"Response from Dapr binding query: {resp}")
+            print(resp, flush=True)
             result_data = resp.json()
-            #print("Selected DB result:", result_data, flush=True)
-            logger.debug(f"Selected DB result: {result_data}")
-            #print("Selected DB result date:", result_data[0][0], flush=True)
-            logger.debug(f"Selected DB result date: {result_data[0][0]}")
-            #print("-----------------", flush=True)
-            logger.debug("-----------------")
+            print("Selected DB result:", result_data, flush=True)
+            print("Selected DB result date:", result_data[0][0], flush=True)
+            print("-----------------", flush=True)
 
             
             # The response data from Dapr SDK is bytes, so decode it and parse JSON
@@ -132,12 +96,10 @@ def get_db_date(db_table):
                 #return result_data['result'][0]['lastupdate']
                 return result_data[0][0]
             else:
-                #print("No 'lastupdate' date found in the database.")
-                logger.warning("No 'lastupdate' date found in the database.")
+                print("No 'lastupdate' date found in the database.")
                 return None
         except Exception as e:
-             #print(e, flush=True)
-             logger.error(f"An error occurred while querying the database: {e}")
+             print(e, flush=True)
              raise SystemExit(e)
            
     
@@ -147,34 +109,25 @@ def date_comparison(sitemap_date, db_date):
     # dt_pg_date = datetime.strptime(str(db_date), "%Y-%m-%d").date()
     dt_pg_date = datetime.fromisoformat(db_date)
 
-    #print(f"Original string with timezone: {sitemap_date}")
-    logger.info(f"Original string with timezone: {sitemap_date}")  
-    #print(f"Parsed datetime with timezone: {dt_with_tz} (Type: {type(dt_with_tz)})")
-    logger.info(f"Parsed datetime with timezone: {dt_with_tz} (Type: {type(dt_with_tz)})")  
-    #print(f"Original PostgreSQL date string: {db_date}")
-    logger.info(f"Original PostgreSQL date string: {db_date}")
-    #print(f"Parsed PostgreSQL date: {dt_pg_date} (Type: {type(dt_pg_date)})")
-    logger.info(f"Parsed PostgreSQL date: {dt_pg_date} (Type: {type(dt_pg_date)})")
+    print(f"Original string with timezone: {sitemap_date}")
+    print(f"Parsed datetime with timezone: {dt_with_tz} (Type: {type(dt_with_tz)})")
+    print(f"Original PostgreSQL date string: {db_date}")
+    print(f"Parsed PostgreSQL date: {dt_pg_date} (Type: {type(dt_pg_date)})")
 
     date_from_tz_string = dt_with_tz.date()
     dt_pg_date_string = dt_pg_date.date()
 
-    #print(f"\nDate part from string with timezone: {date_from_tz_string}")
-    logger.info(f"Date part from string with timezone: {date_from_tz_string}")
-    #print(f"\nDate part from PostgreSQL date string: {dt_pg_date_string}")
-    logger.info(f"Date part from PostgreSQL date string: {dt_pg_date_string}")
+    print(f"\nDate part from string with timezone: {date_from_tz_string}")
+    print(f"\nDate part from PostgreSQL date string: {dt_pg_date_string}")
 
     if date_from_tz_string > dt_pg_date_string:
-        #print(f"Result: {date_from_tz_string} is AFTER {dt_pg_date_string}")
-        logger.info(f"Result: {date_from_tz_string} is AFTER {dt_pg_date_string}")
+        print(f"Result: {date_from_tz_string} is AFTER {dt_pg_date_string}")
         return True
     elif date_from_tz_string < dt_pg_date_string:
-        #print(f"Result: {date_from_tz_string} is BEFORE {dt_pg_date_string}")
-        logger.info(f"Result: {date_from_tz_string} is BEFORE {dt_pg_date_string}")
+        print(f"Result: {date_from_tz_string} is BEFORE {dt_pg_date_string}")
         return False
     else:
-        #print(f"Result: {date_from_tz_string} is the SAME DAY as {dt_pg_date_string}")
-        logger.info(f"Result: {date_from_tz_string} is the SAME DAY as {dt_pg_date_string}")
+        print(f"Result: {date_from_tz_string} is the SAME DAY as {dt_pg_date_string}")
         return False
   
 def load_into_db(db_table, JSON_FILE, SCRAPY_TARGET_PATH):
@@ -188,23 +141,20 @@ def load_into_db(db_table, JSON_FILE, SCRAPY_TARGET_PATH):
 
     with DaprClient() as d:
         # 1) DELETE TABLE using Dapr "exec" operation
-        #print(f"Deleting all records from table '{db_table}' via Dapr SDK...")
-        logger.info(f"Deleting all records from table '{db_table}' via Dapr SDK...")
+        print(f"Deleting all records from table '{db_table}' via Dapr SDK...")
         sqlCmd = 'DELETE FROM {db_table};'.format(db_table=db_table)
         payload = {'sql': sqlCmd}
 
         d.invoke_binding(binding_name=DAPR_BINDING_NAME, operation='exec',
                                      binding_metadata=payload)
         # Note: Dapr SDK does not return a response for 'exec' operations, so we assume success
-        #print("Database table deleted successfully via Dapr SDK.")
-        logger.info(f"Database table '{db_table}' deleted successfully via Dapr SDK.")
+        print("Database table deleted successfully via Dapr SDK.")
 
 
         # 2) INSERT
         today = date.today()
 
-        #print("Inserting data into the database via Dapr SDK...")
-        logger.info("Inserting data into the database via Dapr SDK...")
+        print("Inserting data into the database via Dapr SDK...")
         for doc in docs:
             url = doc["url"]
             text = doc["text"]
@@ -222,8 +172,7 @@ def load_into_db(db_table, JSON_FILE, SCRAPY_TARGET_PATH):
             # Prepare the parameters as a list
             params = [url, text, today.isoformat()]
 
-            #print(sqlCmd, flush=True)
-            logger.debug(f"SQL Command: {sqlCmd}")
+            print(sqlCmd, flush=True)
 
             try:
                 # Insert order using Dapr output binding via HTTP Post
@@ -232,13 +181,10 @@ def load_into_db(db_table, JSON_FILE, SCRAPY_TARGET_PATH):
                             data=json.dumps({"sql": sqlCmd, "params": params}).encode('utf-8'), # Data must be bytes or dict
                             binding_metadata={'sql': sqlCmd, 'params': json.dumps(params)}) # Deprecated but often still needed for binding specific context
             except Exception as e:
-                #print(e, flush=True)
-                logger.error(f"An error occurred while inserting data into the database: {e}")
-                # If an error occurs, we raise SystemExit to stop the script
+                print(e, flush=True)
                 raise SystemExit(e)
            
-        #print("Data loaded into the database successfully via Dapr SDK.")
-        logger.info("Data loaded into the database successfully via Dapr SDK.")
+        print("Data loaded into the database successfully via Dapr SDK.")
 
 def exec_scrapy_crawler():
     """
@@ -249,110 +195,86 @@ def exec_scrapy_crawler():
         initial_cwd = os.getcwd()
 
         os.chdir(SCRAPY_TARGET_PATH)
-        #print(f"Changed current working directory to: {os.getcwd()}")
-        logger.info(f"Changed current working directory to: {os.getcwd()}")
+        print(f"Changed current working directory to: {os.getcwd()}")
         
         if os.path.exists(JSON_FILE):
             os.remove(JSON_FILE)
-            #print(f"Removed existing JSON file: {JSON_FILE}")
-            logger.info(f"Removed existing JSON file: {JSON_FILE}")
+            print(f"Removed existing JSON file: {JSON_FILE}")
         else:
-            #print(f"JSON file does not exist, will create a new one: {JSON_FILE}")
-            logger.info(f"JSON file does not exist, will create a new one: {JSON_FILE}")
+            print(f"JSON file does not exist, will create a new one: {JSON_FILE}")
 
         subprocess.run(["scrapy", "crawl", "dapr_docs_web", "-o", JSON_FILE], check=True)
-        #print("Scrapy crawl executed successfully.")
-        logger.info("Scrapy crawl executed successfully.")
+        print("Scrapy crawl executed successfully.")
 
         os.chdir(initial_cwd)
         
     except OSError as e:
-        #print(f"Error changing directory to '{SCRAPY_TARGET_PATH}': {e}", file=sys.stderr)
-        logger.error(f"Error changing directory to '{SCRAPY_TARGET_PATH}': {e}")
+        print(f"Error changing directory to '{SCRAPY_TARGET_PATH}': {e}", file=sys.stderr)
         sys.exit(1)
     except subprocess.CalledProcessError as e:
-        #print(f"Error executing Scrapy crawl: {e}", file=sys.stderr)
-        logger.error(f"Error executing Scrapy crawl: {e}")
+        print(f"Error executing Scrapy crawl: {e}", file=sys.stderr)
         sys.exit(1)
 
 if __name__ == "__main__":
     # 0) Wait for 30 seconds before running the pods logic
     WAIT_FOR_PODS = os.getenv("WAIT_FOR_PODS", "True").lower() == "true"
     if WAIT_FOR_PODS:
-        #print("Waiting for 30 seconds before running the pods logic...")
-        logger.info("Waiting for 30 seconds before running the pods logic...")
+        print("Waiting for 30 seconds before running the pods logic...")
         time.sleep(30)
-        #print("Finished waiting.")
-        logger.info("Finished waiting.")    
+        print("Finished waiting.")
 
     # 1) Check we can get connection string via Dapr Secrets Building Block using SDK - Although not directly used by the binding invocation, it is a good practice to ensure the secret is available.
     # This is to ensure that the Dapr sidecar is running and the secret store is configured correctly.
     # If the secret is not available, the binding invocation will fail, so we check it upfront.
     try:
-        #print(f"Attempting to retrieve secret '{DAPR_SECRET_NAME}' from store '{DAPR_SECRET_STORE_NAME}' using key '{DAPR_SECRET_KEY}' via Dapr SDK...")
-        logger.info(f"Attempting to retrieve secret '{DAPR_SECRET_NAME}' from store '{DAPR_SECRET_STORE_NAME}' using key '{DAPR_SECRET_KEY}' via Dapr SDK...")
+        print(f"Attempting to retrieve secret '{DAPR_SECRET_NAME}' from store '{DAPR_SECRET_STORE_NAME}' using key '{DAPR_SECRET_KEY}' via Dapr SDK...")
         with DaprClient() as d:
             secret_response = d.get_secret(DAPR_SECRET_STORE_NAME, DAPR_SECRET_NAME)
             conn_str = secret_response.secret.get(DAPR_SECRET_KEY)
             if conn_str:
-                #print("Successfully retrieved database connection string via Dapr SDK Secrets (though not directly used by the binding invocation).")
-                logger.info("Successfully retrieved database connection string via Dapr SDK Secrets (though not directly used by the binding invocation).")
+                print("Successfully retrieved database connection string via Dapr SDK Secrets (though not directly used by the binding invocation).")
             else:
-                #print(f"Secret key '{DAPR_SECRET_KEY}' not found in secret '{DAPR_SECRET_NAME}'. Available keys: {secret_response.secret.keys()}", file=sys.stderr)
-                logger.error(f"Secret key '{DAPR_SECRET_KEY}' not found in secret '{DAPR_SECRET_NAME}'. Available keys: {secret_response.secret.keys()}")   
+                print(f"Secret key '{DAPR_SECRET_KEY}' not found in secret '{DAPR_SECRET_NAME}'. Available keys: {secret_response.secret.keys()}", file=sys.stderr)
                 sys.exit(1) # Critical error if secret key is missing
     except Exception as e:
-        #print(f"Failed to retrieve database connection string via Dapr SDK Secrets: {e}", file=sys.stderr)
-        logger.error(f"Failed to retrieve database connection string via Dapr SDK Secrets: {e}")
+        print(f"Failed to retrieve database connection string via Dapr SDK Secrets: {e}", file=sys.stderr)
         sys.exit(1) # Critical error, exit
 
     # 2) Get the first 'lastmod' last modification date from the sitemap in Dapr URL
     sitemap_date = get_first_sitemap_date(SITEMAP_URL)
     if sitemap_date:
-        #print(f"The 'lastmod' date from the first URL in the sitemap is: {sitemap_date}")
-        logger.info(f"The 'lastmod' date from the first URL in the sitemap is: {sitemap_date}")
-        # Convert the date string to a datetime object for comparison
+        print(f"The 'lastmod' date from the first URL in the sitemap is: {sitemap_date}")
     else:
-        #print("Could not retrieve the first date from the sitemap.")
-        logger.error("Could not retrieve the first date from the sitemap.")
+        print("Could not retrieve the first date from the sitemap.")
         sys.exit(1) # Use sys.exit for consistency
     
     # 3) Check if sitemap.xml date data is more recent than in the database or there is no data in database table
     # if database date data is older -> do nothing
     db_date = get_db_date(DB_TABLE)
     if db_date:
-        #print(f"The most recent 'lastupdate' date from the database is: {db_date}")
-        logger.info(f"The most recent 'lastupdate' date from the database is: {db_date}")   
+        print(f"The most recent 'lastupdate' date from the database is: {db_date}")
         if date_comparison(sitemap_date, db_date):
-            #print("The sitemap date is more recent than the database date, reloading data into the database.")
-            logger.info("The sitemap date is more recent than the database date, reloading data into the database.")
-            # 3.1) Execute Scrapy crawler to get the latest data
+            print("The sitemap date is more recent than the database date, reloading data into the database.")
             exec_scrapy_crawler()
             load_into_db(DB_TABLE, JSON_FILE, SCRAPY_TARGET_PATH)
         else:
-            #print("The sitemap date is not more recent than the database date, no action taken.")
-            logger.info("The sitemap date is not more recent than the database date, no action taken.")
+            print("The sitemap date is not more recent than the database date, no action taken.")
     else:
-        #print("Could not retrieve the date from the database, so database is empty (no rows).")
-        logger.info("Could not retrieve the date from the database, so database is empty (no rows).")
+        print("Could not retrieve the date from the database, so database is empty (no rows).")
         exec_scrapy_crawler()
         load_into_db(DB_TABLE, JSON_FILE, SCRAPY_TARGET_PATH)
 
     # 4) Dapr sidecar MUST BE shutdown after the cronjob has finished successfully, see https://docs.dapr.io/operations/hosting/kubernetes/kubernetes-job/
     # Shutdown the Dapr sidecar gracefully
-    #print("Shutting down Dapr sidecar gracefully...")
-    logger.info("Shutting down Dapr sidecar gracefully...")
+    print("Shutting down Dapr sidecar gracefully...")
     d.close() # Close the Dapr client connection
     try:
         response = requests.post("http://localhost:3500/v1.0/shutdown")
         if response.status_code == 204:
-            #print("Dapr sidecar shutdown requested successfully.")
-            logger.info("Dapr sidecar shutdown requested successfully.")
+            print("Dapr sidecar shutdown requested successfully.")
         else:
-            #print(f"Failed to shutdown Dapr sidecar. Status code: {response.status_code}")
-            logger.error(f"Failed to shutdown Dapr sidecar. Status code: {response.status_code}")
+            print(f"Failed to shutdown Dapr sidecar. Status code: {response.status_code}")
     except Exception as e:
-        #print(f"Error during dapr shutdown request: {e}")
-        logger.error(f"Error during Dapr shutdown request: {e}")
+        print(f"Error during dapr shutdown request: {e}")
     
     sys.exit(0) # IMPORTANT: Exit with 0 for success

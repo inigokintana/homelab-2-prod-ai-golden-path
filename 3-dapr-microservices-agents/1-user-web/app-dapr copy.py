@@ -1,5 +1,4 @@
 import json
-import logging
 import re
 import requests
 import xml.etree.ElementTree as ET
@@ -15,30 +14,6 @@ from dapr.clients import DaprClient
 from dapr.clients.grpc._request import ConversationInput
 # --- END DAPR SDK IMPORTS ---
 import ast
-
-# ---------------------------------------------------
-# Configure logging from environment variable
-# ---------------------------------------------------
-LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
-
-# Map string to logging level (default INFO if invalid)
-LEVELS = {
-    "DEBUG": logging.DEBUG,
-    "INFO": logging.INFO,
-    "WARNING": logging.WARNING,
-    "ERROR": logging.ERROR,
-    "CRITICAL": logging.CRITICAL,
-}
-log_level = LEVELS.get(LOG_LEVEL, logging.INFO)
-
-logging.basicConfig(
-    level=log_level,
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-    handlers=[logging.StreamHandler()]
-)
-
-logger = logging.getLogger(__name__)
-# ---------------------------------------------------
 
 app = Flask(__name__)
 
@@ -59,8 +34,8 @@ DAPR_SECRET_KEY = os.getenv("DAPR_SECRET_KEY", "connectionString")
 # --- Initialize Dapr Client globally ---
 # This client will be used for all Dapr building block interactions
 dapr_client = DaprClient()
-#print("DaprClient initialized successfully for Dapr building block interactions.")
-logger.info("DaprClient initialized successfully for Dapr building block interactions.")
+print("DaprClient initialized successfully for Dapr building block interactions.")
+
 
 # --- Helper Functions for LLM Calls ---
 
@@ -81,10 +56,8 @@ def get_rag_context(user_prompt: str) -> str:
     try:
         sqlCmd = ("SELECT  text,embedding <=> ai.ollama_embed('all-minilm', '{user_prompt}') FROM dapr_web_embeddings ORDER BY embedding LIMIT 5;".format(user_prompt=user_prompt))
         payload = {'sql': sqlCmd}
-        #print(payload, flush=True)
-        logger.debug(f"Query SQL payload: {payload}")
-        #print(f"Invoking Dapr binding '{DAPR_BINDING_NAME}' with query...")
-        logger.info(f"Invoking Dapr binding '{DAPR_BINDING_NAME}' with query...")
+        print(payload, flush=True)
+        print(f"Invoking Dapr binding '{DAPR_BINDING_NAME}' with query...")
         resp = dapr_client.invoke_binding(
             binding_name=DAPR_BINDING_NAME,
             operation='query', # Use 'query' for SELECT statements
@@ -92,28 +65,23 @@ def get_rag_context(user_prompt: str) -> str:
             )
         
         #print(resp, flush=True)
-        logger.debug(f"RAG DB QUERY response: {resp}")
-        # print(resp.data, flush=True)
-        logger.debug(f"RAG DB QUERY response - data only: {resp.data()}")
-        # Dapr binding 'query' operation returns results in the 'data' field as JSON
+        #print(resp.text(), flush=True)
         if resp.data:
-            # Decode the response data
+        #if resp.text():
+            # print(resp.data, flush=True)
+            # #Dapr binding 'query' operation returns results in the 'data' field as JSON
             query_results = json.loads(resp.data.decode('utf-8'))
-            #print("Dapr binding query result:", query_results, flush=True)
-            logger.debug(f"Dapr binding query result: {query_results}")
+            print("Dapr binding query result:", query_results, flush=True)
             if query_results:
                 for row in query_results:
                     # Assuming 'result' contains dictionaries like {'content': '...', 'title': '...', 'uri': '...'}
                     rag_context.append(f"Content:\n{row}\n---")
             else:
-                #print(f"Dapr binding query result format unexpected: {query_results}")
-                logger.warning(f"Dapr binding query result format unexpected: {query_results}")
+                print(f"Dapr binding query result format unexpected: {query_results}")
         else:
-            #print(f"Dapr binding query failed or returned no data.")
-            logger.warning(f"Dapr binding query failed or returned no data.")
+            print(f"Dapr binding query failed or returned no data.")
     except Exception as e:
-        #print(f"An unexpected error occurred during RAG context retrieval via Dapr binding: {e}")
-        logger.error(f"An unexpected error occurred during RAG context retrieval via Dapr binding: {e}")
+        print(f"An unexpected error occurred during RAG context retrieval via Dapr binding: {e}")
     
     if rag_context:
         return "\n\n" + "\n\n".join(rag_context)
@@ -139,15 +107,12 @@ def call_ollama(prompt: str, language: str) -> str:
             method_name='api/generate',
             data=json.dumps(payload),
             http_verb='POST',
-            timeout=600 # Timeout in seconds, we have a small LLM in laptop and low memory, so it requires some time to generate a response
+            timeout=600 # Timeout in seconds, we have a small LLM and low memory, so it requires some time to generate a response
         )
         # Print the response
         # print(resp.content_type, flush=True)
-        logger.debug(f"Ollama response content type: {response.content_type}")
         # print(resp.text(), flush=True)
-        logger.debug(f"Ollama response text: {response.text()}")
         # print(str(resp.status_code), flush=True)
-        logger.debug(f"Ollama response status code: {response.status_code}")
         time.sleep(2)
         return response.text()
 
@@ -159,14 +124,17 @@ def call_openai(prompt: str, language: str, use_rag: bool = False) -> str:
     Calls OpenAI's Chat Completion API using Dapr's AI building block.
     Assumes a Dapr AI component named DAPR_OPENAI_AI_COMPONENT_NAME (e.g., 'openai-llm-model')
     is configured and points to OpenAI with the necessary API key.
-    https://www.diagrid.io/blog/dapr-1-15-release-highlights
     """
-    
+    #https://www.diagrid.io/blog/dapr-1-15-release-highlights
+    # from dapr.clients import DaprClient
+    # from dapr.clients.grpc._request import ConversationInput
+
     if not DAPR_OPENAI_AI_COMPONENT_NAME:
         return "Dapr OpenAI AI component name not configured."
 
     inputs = [
         ConversationInput(content=prompt, role='user', scrub_pii=True),
+        # ConversationInput(content='Give a brief overview.', role='user', scrub_pii=True),
     ]
 
     metadata = {
@@ -176,6 +144,7 @@ def call_openai(prompt: str, language: str, use_rag: bool = False) -> str:
     }
 
     try:
+        print(f"Invoking Dapr AI model '{DAPR_OPENAI_AI_COMPONENT_NAME}' for OpenAI...")
         # Use invoke_ai_model for high-level AI building block interaction
         # The model_id here refers to the Dapr AI component's metadata.name
         # The prompt is the list of messages
@@ -189,9 +158,6 @@ def call_openai(prompt: str, language: str, use_rag: bool = False) -> str:
         #     prompt=messages,
         #     parameters={"scrubPII": "true","temperature": 0.0} # Pass other LLM parameters here
         # )
-
-        #print(f"Invoking Dapr AI model '{DAPR_OPENAI_AI_COMPONENT_NAME}' for OpenAI...")
-        logger.info(f"Invoking Dapr AI model '{DAPR_OPENAI_AI_COMPONENT_NAME}' for OpenAI...")
         resp = dapr_client.converse_alpha1(
             name=DAPR_OPENAI_AI_COMPONENT_NAME,
             inputs=inputs,
@@ -239,27 +205,21 @@ def process_prompt():
     rag_context = ""
 
     if llm_source == 'ollama_local':
-        #print(f"Calling Ollama with RAG context for prompt: {user_prompt[:50]}...", flush=True)
-        logger.info(f"Calling Ollama with RAG context for prompt: {user_prompt[:50]}...")
+        print(f"Calling Ollama with RAG context for prompt: {user_prompt[:50]}...", flush=True)
         rag_context = get_rag_context(user_prompt)
         final_prompt = f"{rag_context}\n\nUser Query: {user_prompt}" if rag_context else user_prompt
-        #print(f"Final prompt for Ollama: {final_prompt[:500]}...", flush=True)
-        logger.info(f"Final prompt for Ollama: {final_prompt[:500]}...")
+        print(f"Final prompt for Ollama: {final_prompt[:500]}...", flush=True)
         llm_answer = call_ollama(final_prompt, language)
-        #print(f"Calling Ollama with RAG context for prompt: {llm_answer[:500]}...", flush=True)
-        logger.info(f"Calling Ollama with RAG context for prompt: {llm_answer[:500]}...")
+        print(f"Calling Ollama with RAG context for prompt: {llm_answer[:500]}...", flush=True)
 
     elif llm_source == 'openai_local':
-        #print(f"Calling OpenAI (RAG) for prompt: {user_prompt[:50]}...", flush=True)
-        logger.info(f"Calling OpenAI (RAG) for prompt: {user_prompt[:50]}...")
+        print(f"Calling OpenAI (RAG) for prompt: {user_prompt[:50]}...", flush=True)
         rag_context = get_rag_context(user_prompt)
         final_prompt = f"{rag_context}\n\nUser Query: {user_prompt}" if rag_context else user_prompt
         llm_answer = call_openai(final_prompt, language, use_rag=True)
-        #print(type(llm_answer), flush=True)
-        logger.info(f"Calling OpenAI with RAG context for prompt: {llm_answer[:500]}...")
+        print(type(llm_answer), flush=True)
         #print(f"Calling OpenAI with RAG context for prompt: {llm_answer[:500]}...", flush=True)
-        #print("RAW OPENAI LLM RESPONSE:", repr(llm_answer), flush=True)
-        logger.info(f"RAW OPENAI LLM RESPONSE: {repr(llm_answer)}")
+        print("RAW OPENAI LLM RESPONSE:", repr(llm_answer), flush=True)
     else:
         llm_answer = "Invalid LLM source selected."
     # Ollama works
@@ -285,20 +245,15 @@ def save_feedback():
     New endpoint to save feedback for good answers only (4 or 5 stars) using Dapr Bindings.
     """
     data = request.get_json()
-    #print(data, flush=True)
-    logger.debug(f"Received feedback data: {data}")
+    print(data, flush=True)
     prompt = data.get('prompt')
-    #print(prompt, flush=True)
-    logger.debug(f"Prompt from feedback: {prompt}")
+    print(prompt, flush=True)
     answer = data.get('answer')
-    #print(answer, flush=True)
-    logger.debug(f"Answer from feedback: {answer}")
+    print(answer, flush=True)
     rating = int(data.get('rating'))
-    #print(rating, flush=True)
-    logger.debug(f"Rating from feedback: {rating}")
+    print(rating, flush=True)
     language = data.get('language') # Get the LLM source from feedback
-    #print(language, flush=True)
-    logger.debug(f"Language from feedback: {language}")
+    print(language, flush=True)
 
     if not all([prompt, answer, rating, language]):
         return jsonify({"status": "error", "message": "Missing prompt, answer, rating, or language."}), 400
@@ -323,8 +278,7 @@ def save_feedback():
                 "params": params
             }
 
-            #print(f"Invoking Dapr binding '{DAPR_BINDING_NAME}' with insert command...")
-            logger.info(f"Invoking Dapr binding '{DAPR_BINDING_NAME}' with insert command...")
+            print(f"Invoking Dapr binding '{DAPR_BINDING_NAME}' with insert command...")
             dapr_client.invoke_binding(
                 binding_name=DAPR_BINDING_NAME,
                 operation='exec', # Use 'exec' for DML statements
@@ -335,8 +289,7 @@ def save_feedback():
             # If no exception was raised, assume success
             return jsonify({"status": "success", "message": "Feedback saved successfully via Dapr!"}), 200
         except Exception as e:
-            #print(f"An unexpected error occurred during Dapr binding insert: {e}")
-            logger.error(f"An unexpected error occurred during Dapr binding insert: {e}")
+            print(f"An unexpected error occurred during Dapr binding insert: {e}")
             return jsonify({"status": "error", "message": f"An unexpected error occurred: {e}"}), 500
     else:
         return jsonify({"status": "info", "message": "Feedback not saved (rating less than 4 stars)."}), 200

@@ -13,7 +13,7 @@
 variable "sg_ip_cidr" {
   type    = string
   #default = "0.0.0.0/0" # anywhere 
-  default ="88.10.79.3/32" # my router public dinamyc IP, change it to your own convinience
+  default ="88.9.233.213/32" # my router public dinamyc IP, change it to your own convinience
 }
 
 # 2) Provider

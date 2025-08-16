@@ -13,7 +13,7 @@ k() {
 #################################
 # # set FQDN  <- var.ec2_vm_name+var.ec2_fqdn
 # ssh RSA public from selected users <-- ec2_user_public_rsa -  Not need as we reference key pair in resource Ec2 Instance in OpenTofu
-# echo "${var.ec2_user_public_rsa}" >> /home/ubuntu/.ssh/authorized_keys
+# echo "${var.ec2_user_public_rsa}" >> /root/.ssh/authorized_keys
 
 ###################
 # 1 - update ubuntu
@@ -74,15 +74,16 @@ kubectl version --client
 ########
 # The default Ubuntu repositories do not yet provide the Helm package
 # https://cloudcone.com/docs/article/how-to-install-helm-on-ubuntu-22-04/
+sudo apt-get install -y snapd
 sudo snap install helm --classic
-helm version
+sudo helm version
 
 ## 2.4 - Install git
 # Deploy git and clone the repo
 ########
 sudo apt-get install git -y
 cd /root #cd /home/ubuntu - Hetzner user is root in cloudinit
-git clone https://github.com/inigokintana/homelab-2-prod-ai-golden-path.git
+sudo git clone https://github.com/inigokintana/homelab-2-prod-ai-golden-path.git
 
 ######################
 # 3 - Install microk8s
@@ -100,17 +101,17 @@ sudo microk8s enable dns dashboard hostpath-storage registry rbac
 # kubectl alias k
 # aliases in Ubuntu WSL2
 #alias k="sudo microk8s kubectl"
-echo "# microk8s alias" >> /home/ubuntu/.bashrc
-echo "alias k='sudo microk8s kubectl'" >> /home/ubuntu/.bashrc
+sudo echo "# microk8s alias" >> /root/.bashrc
+sudo echo "alias k='sudo microk8s kubectl'" >> /root/.bashrc
 # execute the bashrc to get the alias working
-#source  /home/ubuntu/.bashrc
+#source  /root/.bashrc
 k get nodes -o wide
 # return to home directory
-cd /home/ubuntu
+cd /root
 # make microk8s credentials available
-mkdir /home/ubuntu/.kube
+# mkdir /root/.kube
 sudo cp -p /var/snap/microk8s/current/credentials/client.config .kube/config
-sudo chown ubuntu:microk8s .kube/config
+sudo chown root:microk8s .kube/config
 # for helm root .kube/config is necesary
 sudo su -c "microk8s config > /root/.kube/config"
 # This command starts a proxy to the Kubernetes Dashboard UI in the background
@@ -174,13 +175,13 @@ dapr dashboard -k -p 9999 &
 # It provides a way to collect and visualize trace data from distributed systems, making it easier to identify performance bottlenecks and understand the flow of requests through the system.
 # See https://zipkin.io/
 # Enable zipkin tracing in Dapr
-cd /home/ubuntu/homelab-2-prod-ai-golden-path/4-optional-k8s-services/zipkin
+cd /root/homelab-2-prod-ai-golden-path/4-optional-k8s-services/zipkin
 k apply -f zipkin.yaml
 
 ## 4.1.b install prometheus for dapr metrics
 # Prometheus is an open-source monitoring and alerting toolkit designed for reliability and scalability.
 # https://docs.dapr.io/operations/observability/metrics/prometheus/
-cd /home/ubuntu/homelab-2-prod-ai-golden-path/4-optional-k8s-services/prometheus
+cd /root/homelab-2-prod-ai-golden-path/4-optional-k8s-services/prometheus
 # k apply -f namespace.yaml
 sudo helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 sudo helm repo update
@@ -217,7 +218,7 @@ k port-forward svc/grafana 8080:80 -n dapr-monitoring &
 
 ## 5.1 - Install Ollama arm/Intel/AMD architecture - Preload Encodding: all-minilm & LLM: llama3.2:1b
 ########
-cd /home/ubuntu/homelab-2-prod-ai-golden-path/2-mandatory-k8s-services/ollama/deploy
+cd /root/homelab-2-prod-ai-golden-path/2-mandatory-k8s-services/ollama/deploy
 # Ollama is a platform for running and sharing large language models (LLMs) locally.
 # It provides a simple command-line interface (CLI) for running LLMs and a web-based UI for managing and sharing models.
 # Ollama is designed to be easy to use and provides a variety of pre-trained models that can be run locally.
@@ -241,19 +242,23 @@ curl http://localhost:11434/api/generate -d '{
 
 ## 5.2 - Install Timescale DB with pgvector extension and vectorizer for LLM RAG
 ########
-cd /home/ubuntu/homelab-2-prod-ai-golden-path/2-mandatory-k8s-services/timescaleDB/deploy
+cd /root/homelab-2-prod-ai-golden-path/2-mandatory-k8s-services/timescaleDB/deploy
 k  apply -f namespace.yaml
 k  apply -f data-pv.yaml
 k  apply -f data-pv-claim.yaml
 # we need to change permisson in the mount point
 sudo mkdir -p /mnt/pgdata
-sudo chown ubuntu:ubuntu /mnt/pgdata
+sudo chmod 700 /mnt/pgdata 
+sudo chown root:root /mnt/pgdata
 k  apply -f secret-pgvector.yaml
 # vectorizer to ollama connection config is done with k8s DNS no Dapr naming - to check with Dapr naming app_id='ollama-llm.ollama' 
 # post http://localhost:3500/v1.0/invoke/ollama-llm.ollama/method/chat
 k  apply -f deployment.yaml
 echo "Waiting for TimescaleDB and Vectorizer to be ready..."
 sleep 180 # wait for TimescaleDB to be ready
+#k -n pgvector rollout restart deployment.apps/pgvector
+k delete pods -n pgvector --all
+sleep 20 # wait for pods to be restarted
 k  apply -f service.yaml
 # be able to connect to postgres from Ubuntu 22.04 locally
 k -n pgvector port-forward service/pgvector 15432:5432 &
@@ -275,8 +280,8 @@ sleep 5 # wait for port-forward to be ready
 # psqlclient and  password
 sudo apt-get install -y postgresql-client-common
 sudo apt-get install -y postgresql-client
-echo "localhost:15432:postgres:postgres:pgvector" > /home/ubuntu/.pgpass
-chmod 600 /home/ubuntu/.pgpass
+echo "localhost:15432:postgres:postgres:pgvector" > /root/.pgpass
+chmod 600 /root/.pgpass
 ## NOTE
 ## This password was created in deployment.yaml & secret-pgvector.yaml
 ## in  ./homelab-2-prod-ai-golden-path/2-mandatory-k8s-services/timescaleDB/deploy
@@ -290,13 +295,13 @@ chmod 600 /home/ubuntu/.pgpass
 # after pgAI 0.10 it is intalled outside the database with python this way
 sudo apt-get install -y python3-pip
 pip install pgai
-export PATH=$PATH:/home/ubuntu/.local/bin
+export PATH=$PATH:/root/.local/bin
 pgai install -d postgres://postgres:pgvector@localhost:15432/postgres # IN PROD you should change postgres password later
 
 ## 6.3 - Injection Agent Web Dapr
 ########
 # create database table & create the vectorized table
-cd /home/ubuntu/homelab-2-prod-ai-golden-path/3-dapr-microservices-agents/2-injection-agent-web-dapr
+cd /root/homelab-2-prod-ai-golden-path/3-dapr-microservices-agents/2-injection-agent-web-dapr
 psql -U postgres -d postgres -h localhost -p 15432 < ./sql/create-table.sql
 psql -U postgres -d postgres -h localhost -p 15432 < ./sql/create-vectorized-table.sql
 # create local registry image -  build the image with microk8s docker
@@ -312,7 +317,7 @@ k apply -f ./k8s/base/secret-reader-rolebinding.yaml
 ## 6.4- User Web Dapr Agent
 ########
 # create database table & create the vectorized table
-cd /home/ubuntu/homelab-2-prod-ai-golden-path/3-dapr-microservices-agents/1-user-web
+cd /root/homelab-2-prod-ai-golden-path/3-dapr-microservices-agents/1-user-web
 psql -U postgres -d postgres -h localhost -p 15432 < ./sql/create-table.sql
 psql -U postgres -d postgres -h localhost -p 15432 < ./sql/create-vectorized-table.sql
 # create local registry image -  build the image with microk8s docker
