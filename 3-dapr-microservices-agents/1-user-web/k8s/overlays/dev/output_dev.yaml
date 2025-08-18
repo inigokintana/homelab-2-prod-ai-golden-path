@@ -72,16 +72,19 @@ spec:
         app: user-web-dapr
     spec:
       containers:
-      - envFrom:
+      - name: user-web-dapr
+        image: localhost:32000/user-web-dapr:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5000
+        env:
+        - name: LOG_LEVEL
+          value: "INFO"
+        envFrom:
         - configMapRef:
             name: user-web-config
         - secretRef:
             name: pg-secret-dapr
-        image: localhost:32000/user-web-dapr:latest
-        imagePullPolicy: IfNotPresent
-        name: user-web-dapr
-        ports:
-        - containerPort: 5000
       resources:
         limits:
           cpu: 500m

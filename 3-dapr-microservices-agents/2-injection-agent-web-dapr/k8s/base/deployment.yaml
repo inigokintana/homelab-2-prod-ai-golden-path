@@ -28,6 +28,9 @@ spec:
           - name: scraper
             image: localhost:32000/injection-agent-web-dapr:latest  # Replace with your image
             imagePullPolicy: IfNotPresent
+            env:
+            - name: LOG_LEVEL
+              value: "INFO"
             envFrom:
             - configMapRef:
                 name: dapr-scraper-config-dapr

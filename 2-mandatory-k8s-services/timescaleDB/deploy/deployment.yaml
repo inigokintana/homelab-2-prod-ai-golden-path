@@ -45,6 +45,9 @@ spec:
         # Use the pgvector image for PostgreSQL 17 https://hub.docker.com/r/pgvector/pgvector/tags
         # image: pgvector/pgvector:pg17
         image: timescale/timescaledb-ha:pg17
+        securityContext:
+          runAsUser: 1000
+          runAsGroup: 1000
         args:
           - -c
           - ai.ollama_host=http://ollama.ollama.svc.cluster.local
