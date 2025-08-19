@@ -14,7 +14,7 @@ wait_for_pod() {
     local POD_NAME=$1
     local NAMESPACE=$2
     local MAX_RETRIES=10
-    local SLEEP_SECONDS=45
+    local SLEEP_SECONDS=30
     local COUNT=0
 
     echo "Checking if pod '$POD_NAME' in namespace '$NAMESPACE' is running..."
@@ -247,7 +247,7 @@ k get secret --namespace dapr-monitoring grafana -o jsonpath="{.data.admin-passw
 echo "You will get a password similar to cj3m0OfBNx8SLzUlTx91dEECgzRlYJb60D2evof1%. If at the end there is % character remove it from the password to get cj3m0OfBNx8SLzUlTx91dEECgzRlYJb60D2evof1 as the admin password."
 # Validation Grafana is running in your cluster:
 k get pods -n dapr-monitoring
-# Wait for the Promegrafanatheus pod to be in Running state
+# Wait for the grafana pod to be in Running state
 TARGET_POD="grafana"
 NAMESPACE="dapr-monitoring"
 if wait_for_pod "$TARGET_POD" "$NAMESPACE"; then
@@ -305,8 +305,8 @@ k  apply -f data-pv.yaml
 k  apply -f data-pv-claim.yaml
 # we need to change permisson in the mount point
 sudo mkdir -p /mnt/pgdata
-sudo chmod 700 /mnt/pgdata 
-sudo chown root:root /mnt/pgdata
+sudo chmod 770 /mnt/pgdata 
+sudo chown 1000:microk8s /mnt/pgdata # tricky permissions because we use a PersistentVolume backed by hostPath - 1000 is the user id of the timescaleDB container postgres user
 k  apply -f secret-pgvector.yaml
 # vectorizer to ollama connection config is done with k8s DNS no Dapr naming - to check with Dapr naming app_id='ollama-llm.ollama' 
 # post http://localhost:3500/v1.0/invoke/ollama-llm.ollama/method/chat
@@ -392,8 +392,8 @@ k -n agents create secret generic openai-api-key --from-literal=dapr=test-change
 k apply -f ./k8s/overlays/dev/output_dev.yaml
 
 # wait for user-web to be ready
-TARGET_POD="agents"
-NAMESPACE="user-web"
+TARGET_POD="user-web"
+NAMESPACE="agents"
 if wait_for_pod "$TARGET_POD" "$NAMESPACE"; then
     echo "➡ Continuing script execution..."
 else

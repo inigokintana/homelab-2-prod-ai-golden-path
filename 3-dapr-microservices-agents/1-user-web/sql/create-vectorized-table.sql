@@ -39,7 +39,7 @@ SELECT ai.create_vectorizer(
 -- Check the status of the vectorizer
   SELECT * FROM ai.vectorizer_status;
 -- In case of error, you can drop the vectorizer and try again
--- SELECT ai.drop_vectorizer(1, drop_all=>true);
+-- SELECT ai.drop_vectorizer(2, drop_all=>true);
 
 
 /* -- Example of creating a vectorizer with more options

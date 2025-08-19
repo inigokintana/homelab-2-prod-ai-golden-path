@@ -2,14 +2,15 @@ homelab-2-prod-ai-golden-path
 *******************************
 
 Pending:
-- Optimizing perf - cpu bottleneck - check in AWS from 7 min to 47 seconds - Done
-- OpenTofu Hetzner - doing
-- job runs every min after 9 aM
+
+- Readme hetzner
 - test install wsl in another wsl
 - Dapr Ai agents & MCP
 - Video / script / Demo in AWS 47 sec
-- sanitize code - logging
-- Nginx ingress - too many ports??
+- docs s3 or github docs
+	select dapr_web docs good_answers
+
+- Nginx ingress - too many ports?? NO 
 pgrep kubectl | xargs kill -9
 
 

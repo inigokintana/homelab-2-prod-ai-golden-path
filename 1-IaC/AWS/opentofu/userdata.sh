@@ -8,6 +8,37 @@ k() {
     sudo microk8s kubectl "$@"
 }
 
+# Function to check if a pod is running
+# Input parameters are POD_NAME and NAMESPACE
+wait_for_pod() {
+    local POD_NAME=$1
+    local NAMESPACE=$2
+    local MAX_RETRIES=10
+    local SLEEP_SECONDS=30
+    local COUNT=0
+
+    echo "Checking if pod '$POD_NAME' in namespace '$NAMESPACE' is running..."
+
+    while [ $COUNT -lt $MAX_RETRIES ]; do
+        STATUS=$(k get pods -n "$NAMESPACE" \
+            | grep "$POD_NAME" \
+            | awk '{print $3}' \
+            | head -n1)
+
+        if [ "$STATUS" == "Running" ]; then
+            echo "✅ Pod '$POD_NAME' is Running."
+            return 0
+        else
+            COUNT=$((COUNT+1))
+            echo "Attempt $COUNT/$MAX_RETRIES: Pod not ready (status: $STATUS). Retrying in $SLEEP_SECONDS seconds..."
+            sleep $SLEEP_SECONDS
+        fi
+    done
+
+    echo "❌ Pod '$POD_NAME' did not become Running after $MAX_RETRIES attempts."
+    return 1
+}
+
 #################################
 # 0 - SSH key
 #################################
@@ -188,7 +219,15 @@ sudo helm repo update
 sudo helm install dapr-prom prometheus-community/prometheus -f values.yaml -n dapr-monitoring --create-namespace --set prometheus-node-exporter.hostRootFsMount.enabled=false
 # Ensure Prometheus is running in your cluster.
 k get pods -n dapr-monitoring
-sleep 10  
+# Wait for the Prometheus pod to be in Running state
+TARGET_POD="prometheus-server"
+NAMESPACE="dapr-monitoring"
+if wait_for_pod "$TARGET_POD" "$NAMESPACE"; then
+    echo "➡ Continuing script execution..."
+else
+    echo "Exiting script due to pod not running."
+    exit 1
+fi 
 #To view the Prometheus dashboard and check service discovery:
 k port-forward svc/dapr-prom-prometheus-server 9090:80 -n dapr-monitoring &
 # Get he t the Alertmanager service to monitor alerts
@@ -207,9 +246,18 @@ k get secret --namespace dapr-monitoring grafana -o jsonpath="{.data.admin-passw
 echo "You will get a password similar to cj3m0OfBNx8SLzUlTx91dEECgzRlYJb60D2evof1%. If at the end there is % character remove it from the password to get cj3m0OfBNx8SLzUlTx91dEECgzRlYJb60D2evof1 as the admin password."
 # Validation Grafana is running in your cluster:
 k get pods -n dapr-monitoring
-sleep 10  
+# Wait for the grafana pod to be in Running state
+TARGET_POD="grafana"
+NAMESPACE="dapr-monitoring"
+if wait_for_pod "$TARGET_POD" "$NAMESPACE"; then
+    echo "➡ Continuing script execution..."
+else
+    echo "Exiting script due to pod not running."
+    exit 1
+fi 
 # To access the Grafana dashboard, you can use port forwarding:
 k port-forward svc/grafana 8080:80 -n dapr-monitoring &
+sleep 5 # wait for the port-forward to be ready
 
 ########################################
 # 5 - Install mandatory k8s services
@@ -224,12 +272,21 @@ cd /home/ubuntu/homelab-2-prod-ai-golden-path/2-mandatory-k8s-services/ollama/de
 k apply -f namespace.yaml
 k apply -f deployment.yaml
 k apply -f service.yaml
-# Port forwarding to check the http status of Ollama locally or from broser
+# Wait for the Prometheus pod to be in Running state
 echo "Waiting for Ollama to be ready..."
-sleep 180 # wait for Ollama to be ready
+k get pod -n ollama
+# Wait for the Prometheus pod to be in Running state
+TARGET_POD="ollama"
+NAMESPACE="ollama"
+if wait_for_pod "$TARGET_POD" "$NAMESPACE"; then
+    echo "➡ Continuing script execution..."
+else
+    echo "Exiting script due to pod not running."
+    exit 1
+fi
+# Port forwarding to check the http status of Ollama locally or from broser
 k -n ollama port-forward service/ollama 11434:80 &
 sleep 5 # wait for port-forward to be ready
-k get pod -n ollama
 # Test the Ollama API locally
 # k -n ollama exec -it pod/ollama-59476b6f4c-rmjkz -- sh
 curl http://localhost:11434/api/generate -d '{
@@ -255,6 +312,15 @@ k  apply -f deployment.yaml
 echo "Waiting for TimescaleDB and Vectorizer to be ready..."
 sleep 180 # wait for TimescaleDB to be ready
 k  apply -f service.yaml
+# Wait for the TimeScaleDB pgvector pod to be in Running state
+TARGET_POD="pgvector"
+NAMESPACE="pgvector"
+if wait_for_pod "$TARGET_POD" "$NAMESPACE"; then
+    echo "➡ Continuing script execution..."
+else
+    echo "Exiting script due to pod not running."
+    exit 1
+fi
 # be able to connect to postgres from Ubuntu 22.04 locally
 k -n pgvector port-forward service/pgvector 15432:5432 &
 sleep 5 # wait for port-forward to be ready
@@ -324,8 +390,17 @@ docker push localhost:32000/user-web-dapr:latest
 k -n agents create secret generic openai-api-key --from-literal=dapr=test-change-it 
 # deploy the application into mikrok8s - create Dev environment
 k apply -f ./k8s/overlays/dev/output_dev.yaml
+
+# wait for user-web to be ready
+TARGET_POD="user-web"
+NAMESPACE="agents"
+if wait_for_pod "$TARGET_POD" "$NAMESPACE"; then
+    echo "➡ Continuing script execution..."
+else
+    echo "Exiting script due to pod not running."
+    exit 1
+fi
 # 5000 flask port forward
-sleep 10 # wait for user-web to be ready
 k -n agents port-forward service/user-web-dapr 5000:80 &
 
 #####################################
