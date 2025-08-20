@@ -14,6 +14,7 @@ We can not use OpenAI to create prompt embedding with our RAG database because O
 
 Check step 6) and specifically step 6.4) in:
 - 1-IaC/AWS/opentofu/userdata.sh
+- 1-IaC/OVH-Hetzner/userdata.sh
 - 1-IaC/WSL2/install-in-WSL2.sh
 
 Additionaly, to recreate an OpenAI API_KEY:

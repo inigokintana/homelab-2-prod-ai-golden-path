@@ -3,18 +3,11 @@ homelab-2-prod-ai-golden-path
 
 Pending:
 
-- Readme hetzner
-- test install wsl in another wsl
-- Dapr Ai agents & MCP
 - Video / script / Demo in AWS 47 sec
 - docs s3 or github docs
 	select dapr_web docs good_answers
-
-- Nginx ingress - too many ports?? NO 
-pgrep kubectl | xargs kill -9
-
-
-
+- Dapr Ai agents & MCP
+- test install wsl in another wsl
 
 - what would you use inside kubernetes for ai agents, semantic kernel or dapr?
 thanks but have you considered dapr has workflow capabilities?

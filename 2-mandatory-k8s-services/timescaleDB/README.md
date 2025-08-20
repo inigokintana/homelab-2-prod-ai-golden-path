@@ -30,4 +30,5 @@ Check the SQL subfolder in:
 
 Check step 5.2) in:
 - 1-IaC/AWS/opentofu/userdata.sh
+- 1-IaC/OVH-Hetzner/userdata.sh
 - 1-IaC/WSL2/install-in-WSL2.sh

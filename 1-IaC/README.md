@@ -4,7 +4,7 @@ We are providing:
 
 - **WSL2 Local**: steps to create WSL2 VM and shell script to create everything inside WSL2 Ubuntu 22.04.
 - **AWS**: Opentofu code to provisión a VM on AWS and shell script to recreate everything inside Ubuntu 22.04 VM.
-- **OVH or Hetzner**:  Opentofu code to provisión a VM on OVH or Hetznerand shell script to recreate everything inside Ubuntu 22.04 VM.. Europe is having geopolitical trouble with IT dominance from non European companies.
+- **OVH or Hetzner**:  Opentofu code to provisión a VM on OVH or Hetzner, and shell script to recreate everything inside Ubuntu 22.04 VM. Europe is having geopolitical trouble with IT dominance from non European companies.
 
 **Shell script content:**
 - 1) Updates the package lists 
@@ -19,5 +19,6 @@ We are providing:
 - Step 4 install Dapr with Helm with [OpenTofu Helm provider](https://search.opentofu.org/provider/opentofu/helm/latest)
 - All the kubectl apply commands in steps 5 and 6, install them with [OpenTofu Kubectl Provider](https://search.opentofu.org/provider/opentofu/kubernetes/v2.0.0)
 
+We are using shell script to help maintain userdata.sh as similar as install-in-WSL2.sh.
 
 Now, you can **go into any subfolder** of your convenience. Happy installation!!!

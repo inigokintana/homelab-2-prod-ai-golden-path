@@ -10,6 +10,7 @@ This vectorized tables are what it is call a RAG database.
 
 Check step 6) and specifically step 6.3) in:
 - 1-IaC/AWS/opentofu/userdata.sh
+- 1-IaC/OVH-Hetzner/userdata.sh
 - 1-IaC/WSL2/install-in-WSL2.sh
 
 # 3 - Project Structure

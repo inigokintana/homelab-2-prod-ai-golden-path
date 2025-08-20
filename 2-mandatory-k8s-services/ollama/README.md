@@ -4,6 +4,7 @@ This is something we have [mentioned before](https://github.com/inigokintana/hom
 # 2 - How to install it  
 Check step 5.1) in:
 - 1-IaC/AWS/opentofu/userdata.sh
+- 1-IaC/OVH-Hetzner/userdata.sh
 - 1-IaC/WSL2/install-in-WSL2.sh
 
 Be aware of different RAM & CPU requirements depending on the LLM/SLM you load into Ollama. RAG database must have SAME encoding all-minilm in vectorizer, so we have to activate it in Ollama.

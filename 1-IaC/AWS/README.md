@@ -85,6 +85,11 @@ tofu version
 
    Take care of instance private and public IPs in the output.
 
+   Remember to destroy resources:
+   ```bash
+   tofu destroy
+   ```
+
 3. **Access the EC2 Instance**: After the EC2 instance is provisioned, you can connect with browser from AWS console EC2 or with SSH:
 
    ```bash
