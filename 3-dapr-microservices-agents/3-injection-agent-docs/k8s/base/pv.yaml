@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: docs-pv
+spec:
+  capacity:
+    storage: 512Mi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: /mnt/docs   # <-- host path on your Linux machine
+  persistentVolumeReclaimPolicy: Retain

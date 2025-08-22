@@ -1,12 +1,5 @@
 # 1) Variables
 #################
-# public ssh RSA to include in AWS EC2 to be able to connect
-# Not needed as we reference key pair in resource Ec2 Instance in OpenTofu
-# variable "ec2_user_public_rsa" {
-#   type    = string
-#   default = "ssh-rsa MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA65SCWxubb5qi5iHcVq8e5DIDmkAGeYYtNvO2w2BywOoMiQprbzbBEnar9vGJbIZIAbYjW0e/rzvVSbu0e5mzOvRcm8nmsgr2dp53EW/KUJG/6GhBlIzJLjA5ItV92kDZRLYOuhSuurrpo8x/uycLixrsNp4BP66etPRsL3QgEQ1rVSbLRDxwzSYJB64fELTqZRkREqoTA/mfuE2/BLu6t2zV9Zo6a5G2ZyXQlCo/lG3/WngriB2D9FAZ6WvqYmip0AIdXTOrDxYtJe8KPEOiv0uGpjbwhKB1CsBkrq3bF7qZhBWQ6WZB3Q7XWPchSmgk2hgMIjY3aySWO4B0+qK8xwIDAQAB"
-# }
-
 # IPs allowed to cross the instace security group
 # For security reasons, you should put your router public IP x.y.x.y/32 here
 # instead of 0.0.0.0/0 <-anywhere 

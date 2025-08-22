@@ -1,0 +1,53 @@
+Most people only see AI agents on the surface, but the real power lies deep in the stack.
+
+Here’s a breakdown of the hidden layers that make AI agents work.
+It covers front-end tools, memory, authentication, orchestration, routing, models, infra, and more.
+
+Each section reveals the technologies powering today’s intelligent agent ecosystem.
+
+1. AI agents
+Apps like Perplexity, Cursor, Harvey, and Devin represent the visible tip of the iceberg—the user-facing side of agents.
+
+2. Front-end layer
+Frameworks like React, Streamlit, Flask, and Gradio allow users to interact with agents through apps, dashboards, and chat UIs.
+
+3. Memory systems
+Zep, Memo, Cognce, and Letta give agents memory, enabling them to recall past interactions and build contextual intelligence.
+
+4. Authentication
+Tools like Auth0, Okta, and OpenFGA handle user identity, ensuring secure, role-based access to agent-powered systems.
+
+5. External tools
+Google, DuckDuckGo, and Wolfram Alpha APIs expand agent capabilities beyond language, powering search, reasoning, and calculations.
+
+6. Observability
+LangSmith, Langfuse, PromptLayer, and Arize track performance, debugging, and logs—making agents transparent and accountable.
+
+7. Agent authentication
+Services like AWS Agent Identity and Azure Agent ID authenticate agents themselves, enabling trust between autonomous systems.
+
+8. Orchestration
+LangChain, LlamaIndex, and Informatica coordinate agent workflows, integrating memory, tools, and models into structured pipelines.
+
+9. Agent protocols
+Standards like MCP, A2A Protocol, and IBM’s ACP let agents communicate, collaborate, and transfer data seamlessly across systems.
+
+10. Model routing
+Platforms like Martian, OpenRouter, and Not Diamond optimize how agents pick the best foundation model for a given task.
+
+11. Foundation models
+LLMs like OpenAI, Anthropic’s Claude, DeepSeek, Gemini, and Qwen provide the intelligence layer that powers agent reasoning.
+
+12. Databases
+Chroma, Pinecone, Neo4j, Supabase, and Weaviate store structured and vector data for retrieval-augmented intelligence.
+
+13. Infrastructure
+Docker, Kubernetes, and auto-scaling VMs form the base compute layer, keeping agents reliable and scalable at massive levels.
+
+14. Compute providers
+NVIDIA, AWS, and Azure supply the GPUs and CPUs that make training and running large agents possible.
+
+15. ETL pipelines
+Informatica and similar platforms handle extraction, transformation, and loading of data into agent-accessible systems.
+
+AI agents may look simple, but under the surface lies an entire stack of memory, models, protocols, and infrastructure.

@@ -310,7 +310,6 @@ k  apply -f secret-pgvector.yaml
 # post http://localhost:3500/v1.0/invoke/ollama-llm.ollama/method/chat
 k  apply -f deployment.yaml
 echo "Waiting for TimescaleDB and Vectorizer to be ready..."
-sleep 180 # wait for TimescaleDB to be ready
 k  apply -f service.yaml
 # Wait for the TimeScaleDB pgvector pod to be in Running state
 TARGET_POD="pgvector"

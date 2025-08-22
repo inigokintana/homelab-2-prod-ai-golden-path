@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: docs-sync-deployment
+  namespace: agents
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: docs-sync
+  template:
+    metadata:
+      labels:
+        app: docs-sync
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "docs-sync"
+        dapr.io/enable-api-logging: "true"
+        dapr.io/sidecar-inject: "true"
+        dapr.io/sidecar-inject-annotation: "true"
+        dapr.io/config: "tracing" # zipkin tracing configuration
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+        - name: docs-sync
+          image: localhost:32000/docs-sync:latest  # <-- replace with your built image
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: docs-storage
+              mountPath: /app/docs   # container path monitored by inotifywait
+           env:
+            - name: LOG_LEVEL
+              value: "INFO"
+            envFrom:
+            - configMapRef:
+                name: doc-sync-config # check later
+            - secretRef:
+                name: pg-secret-dapr
+      volumes:
+        - name: docs-storage
+          persistentVolumeClaim:
+            claimName: docs-pvc

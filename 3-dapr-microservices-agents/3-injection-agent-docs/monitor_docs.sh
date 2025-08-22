@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Configuration
-DOCS_FOLDER="DOCS" # IMPORTANT: Set this to your actual DOCS folder
+DOCS_FOLDER="docs" # IMPORTANT: Set this to your actual DOCS folder
 PYTHON_SCRIPT="load-files-to-db.py" # IMPORTANT: Set this to your Python script's path
 LOG_FILE="log/doc_sync_monitor.log" # Log file for events and script output
 
