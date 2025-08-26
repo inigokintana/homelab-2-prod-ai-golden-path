@@ -355,9 +355,9 @@ chmod 600 ~/.pgpass
 # Additionally,  before pgAI 0.10 we need to "CREATE EXTENSION IF NOT EXISTS ai CASCADE;" but 
 # after pgAI 0.10 it is intalled outside the database with python this way
 sudo apt-get install -y python3-pip
-pip install pgai
-export PATH=$PATH:/home/$USER/.local/bin
-pgai install -d postgres://postgres:pgvector@localhost:15432/postgres # IN PROD you should change postgres password later
+sudo pip install pgai
+sudo export PATH=$PATH:/home/$USER/.local/bin
+sudo pgai install -d postgres://postgres:pgvector@localhost:15432/postgres # IN PROD you should change postgres password later
 
 ## 6.3 - Injection Agent Web Dapr
 ########

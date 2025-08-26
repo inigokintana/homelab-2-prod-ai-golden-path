@@ -9,4 +9,5 @@ spec:
     - ReadWriteMany
   hostPath:
     path: /mnt/docs   # <-- host path on your Linux machine
+    type: DirectoryOrCreate
   persistentVolumeReclaimPolicy: Retain

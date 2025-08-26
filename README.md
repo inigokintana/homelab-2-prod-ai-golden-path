@@ -1,3 +1,4 @@
+-- Active: 1754910539248@@127.0.0.1@15432@pgvector
 # Homelab to PROD golden path on AI
 
 This is a golden path A.K.A an opinionated shortcut,  to explore AI from local homelab to PROD using OSS for technological independence and local LLM for privacy. 

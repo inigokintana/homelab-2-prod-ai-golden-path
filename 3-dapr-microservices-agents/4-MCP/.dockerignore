@@ -1,8 +1,8 @@
+# scrapper
+dapr_docs_web
 # k8s deployment
 k8s
 .venv
 .git
-log
 #tilt
 start-time.txt
-Tiltfile

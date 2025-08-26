@@ -4,12 +4,12 @@ from datetime import datetime
 import hashlib # For content hashing, to detect actual content changes
 
 # --- Configuration ---
-DOCS_FOLDER = '/apps/docs'  # Make sure this path is correct relative to your script, or use an absolute path
+DOCS_FOLDER = '/app/docs'  # Make sure this path is correct relative to your script, or use an absolute path
 DB_NAME = "postgres"
 DB_USER = "postgres"
 DB_PASSWORD = "pgvector"
-DB_HOST = "localhost" # Or your database host
-DB_PORT = "15432"      # Your database port
+DB_HOST = "pgvector.pgvector.svc.cluster.local" # Or your database host
+DB_PORT = "5432"      # Your database port
 
 # --- Database Connection ---
 def get_db_connection():

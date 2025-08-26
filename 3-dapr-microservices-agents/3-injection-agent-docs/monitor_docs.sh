@@ -1,12 +1,13 @@
 #!/bin/bash
 
 # Configuration
-DOCS_FOLDER="docs" # IMPORTANT: Set this to your actual DOCS folder
+DOCS_FOLDER="/app/docs" # IMPORTANT: Set this to your actual DOCS folder
 PYTHON_SCRIPT="load-files-to-db.py" # IMPORTANT: Set this to your Python script's path
 LOG_FILE="log/doc_sync_monitor.log" # Log file for events and script output
 
 # Ensure the docs & log directory exists
-mkdir -p "$(dirname "$DOCS_FOLDER")"
+# This is mount in yaml file as a volume
+# mkdir -p "$(dirname "$DOCS_FOLDER")"
 mkdir -p "$(dirname "$LOG_FILE")"
 
 echo "$(date): Starting file system monitor for $DOCS_FOLDER" | tee -a "$LOG_FILE"
@@ -22,7 +23,7 @@ echo "$(date): Starting file system monitor for $DOCS_FOLDER" | tee -a "$LOG_FIL
 #   %w: watched path
 #   %f: filename (if event on a file within a directory)
 #   %e: event name(s)
-inotifywait -m -r -e create,modify,close_write,moved_to \
+inotifywait -m -r -e create,modify,close_write,moved_to,delete,delete_self,moved_from \
     --exclude '\.tmp$' \
     --format '%T %w%f %e' --timefmt '%Y-%m-%d %H:%M:%S' \
     "$DOCS_FOLDER" | while read -r datetime path event; do

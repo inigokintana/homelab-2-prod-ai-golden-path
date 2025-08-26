@@ -70,10 +70,11 @@ SELECT ai.create_vectorizer(
     chunking => ai.chunking_recursive_character_text_splitter( 
         chunk_size => 700, 
         separators => array[E'\n## ', E'\n### ', E'\n#### ', E'\n- ', E'\n1. ', E'\n\n', E'\n', '.', '?', '!', ' ', '', '|'] ), 
-    embedding => ai.embedding_ollama('nomic-embed-text', 768),
+    embedding => ai.embedding_ollama('all-minilm', 384),
     destination => ai.destination_table('document_embeddings')
 );
-
+-- Check the status of the vectorizer
+  SELECT * FROM ai.vectorizer_status;
 -- advance query
 -- Find documents relevant to customers with pending support tickets 
 -- SELECT c.name, d.title, e.chunk 

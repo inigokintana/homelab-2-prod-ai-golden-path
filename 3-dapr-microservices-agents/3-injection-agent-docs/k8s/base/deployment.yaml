@@ -20,23 +20,23 @@ spec:
         dapr.io/sidecar-inject-annotation: "true"
         dapr.io/config: "tracing" # zipkin tracing configuration
     spec:
-      securityContext:
-        runAsUser: 1000
-        runAsGroup: 1000
-        fsGroup: 1000
+      # securityContext:
+      #   runAsUser: 1000
+      #   runAsGroup: 1000
+      #   fsGroup: 1000
       containers:
         - name: docs-sync
-          image: localhost:32000/docs-sync:latest  # <-- replace with your built image
-          imagePullPolicy: IfNotPresent
+          image: localhost:32000/docs-sync:latest 
+          imagePullPolicy: Always
           volumeMounts:
             - name: docs-storage
-              mountPath: /app/docs   # container path monitored by inotifywait
-           env:
+              mountPath: /app/docs 
+          env:
             - name: LOG_LEVEL
               value: "INFO"
-            envFrom:
+          envFrom:
             - configMapRef:
-                name: doc-sync-config # check later
+                name: doc-sync-config
             - secretRef:
                 name: pg-secret-dapr
       volumes:
