@@ -4,3 +4,6 @@ chainlit
 psycopg
 psycopg[binary]
 websockets
+# langchain 
+# langchain-ollama
+# langchain-community

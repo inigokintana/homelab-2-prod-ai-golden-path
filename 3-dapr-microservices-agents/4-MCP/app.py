@@ -1,5 +1,5 @@
 import chainlit as cl
-from dotenv import load_dotenv
+#from dotenv import load_dotenv
 from get_schema import get_table_schema_as_dict
 
 from dapr_agents import Agent
@@ -7,8 +7,15 @@ from dapr_agents.tool.mcp.client import MCPClient
 from dapr_agents.types import AssistantMessage
 import os
 
-load_dotenv()
+#from langchain_ollama.llms import OllamaLLM
+#load_dotenv()
 DATABASE_URI = os.getenv("DATABASE_URI","postgresql://postgres:pgvector@pgvector.pgvector.svc.cluster.local:5432/postgres")
+# OPENAI_API_KEY = os.getenv("OPENAI_API_KEY","any")
+# OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL","http://ollama.ollama.svc.cluster.local:11434")
+# OLLAMA_MODEL = os.getenv("OLLAMA_MODEL","llama3.2:1b")
+
+#llm = Ollama(model=OLLAMA_MODEL, base_url=OLLAMA_BASE_URL, temperature=0.0)
+#llm = OllamaLLM(model=OLLAMA_MODEL, base_url=OLLAMA_BASE_URL, temperature=0.0)
 
 instructions = [
     "You are an assistant designed to translate human readable text to postgresql queries. "

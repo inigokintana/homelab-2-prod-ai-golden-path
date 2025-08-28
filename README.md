@@ -1,4 +1,3 @@
--- Active: 1754910539248@@127.0.0.1@15432@pgvector
 # Homelab to PROD golden path on AI
 
 This is a golden path A.K.A an opinionated shortcut,  to explore AI from local homelab to PROD using OSS for technological independence and local LLM for privacy. 
@@ -13,7 +12,7 @@ We explore concepts like AI agents, RAG and LLM using OSS technologies like Linu
 
 ```
 ├── 1-IaC: we choose kubernetes microK8S implementation as the neutral vendor platform to run differents POCs
-│   ├── AWS: TF/OpenTofu scripts to run it in AWS free tier t4g Ubuntu 22.04
+│   ├── AWS: TF/OpenTofu scripts to run it in AWS Ubuntu 22.04
 │   └── WSL2: steps/shell script how to install it locally in WSL2 - Ubuntu 22.04
 │   └── OVH-Hetzner: TF/OpenTofu scripts to run it in Hetzner Ubuntu 22.04 European provider
 ├── 2-mandatory-k8s-services: mandatory services to install in K8S

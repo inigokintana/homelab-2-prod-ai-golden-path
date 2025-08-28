@@ -39,9 +39,13 @@ spec:
         - containerPort: 8001 # Application port chainlit http://localhost:8001.
         env:
         - name: OPENAI_API_KEY
-          value: "*****" # add your openai api key here
-        # - name: DATABASE_URI
-        #   value: "postgresql://postgres:pgvector@pgvector.pgvector.svc.cluster.local:5432/postgres"
+          value: "change-it" # add your openai api key here
+        # - name: OLLAMA_BASE_URL
+        #   value: "http://ollama.ollama.svc.cluster.local:11434"
+        # - name: OLLAMA_MODEL
+        #   value: "llama3.2:1b"
+        - name: DATABASE_URI
+          value: "postgresql://postgres:pgvector@pgvector.pgvector.svc.cluster.local:5432/postgres"
         # - name: LOG_LEVEL
         #   value: "INFO"
         # envFrom:

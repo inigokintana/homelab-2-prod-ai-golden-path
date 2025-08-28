@@ -378,7 +378,7 @@ k apply -f ./k8s/base/secret-reader-rolebinding.yaml
 ## 6.4 - User Web Dapr Agent
 ########
 # create database table & create the vectorized table
-cd ~/homelab-2-prod-ai-golden-path/3-dapr-microservices-agents/2-injection-agent-web-dapr/sql
+cd ~/homelab-2-prod-ai-golden-path/3-dapr-microservices-agents/2-injection-agent-web-dapr
 psql -U postgres -d postgres -h localhost -p 15432 < .sql/create-table.sql
 psql -U postgres -d postgres -h localhost -p 15432 < .sql/create-vectorized-table.sql
 # create local registry image -  build the image with microk8s docker
@@ -402,6 +402,36 @@ else
 fi
 # 5000 flask port forward
 k -n agents port-forward service/user-web-dapr 5000:80 &
+
+## 6.6 - MCP
+########
+cd ~/homelab-2-prod-ai-golden-path/3-dapr-microservices-agents/4-MCP
+# No need to create database table 
+# create local registry image -  build the image with microk8s docker
+docker build -t localhost:32000/mcp-agent-pg-openai:latest .
+# push the image to the local registry
+docker push localhost:32000/mcp-agent-pg-openai:latest   
+# deploy the application into mikrok8s - create Dev environment
+# OpenAI api key - Substitute it manually in deployment.yaml and redeploy
+echo "You must change the OpenAI key in ./k8s/deployment.yaml before applying it - Remember it was created as a secret with fake value for demo purposes"
+# Redis installed in default namespace
+# Copying redis secret in agents namespace - needed for conversationmemory
+k get secret dapr-dev-redis -n default -o yaml | grep -v namespace | k apply -n agents -f -
+# Deploying
+k apply -f ./k8s/conversationmemory.yaml
+k apply -f ./k8s/deployment.yaml
+k apply -f ./k8s/service.yaml
+# wait for user-web to be ready
+TARGET_POD="mcp-agent-pg-openai"
+NAMESPACE="agents"
+if wait_for_pod "$TARGET_POD" "$NAMESPACE"; then
+    echo "➡ Continuing script execution..."
+else
+    echo "Exiting script due to pod not running."
+    exit 1
+fi
+# 8001 Chainlit port forward
+k -n agents port-forward service/mcp-svc 8001:8001 &
 
 #####################################
 # 7 - Optional tools and utilities
@@ -482,12 +512,13 @@ echo "
 # PGVector: psql - k -n pgvector port-forward service/pgvector 15432:5432 &
 # Dapr Dashboard: http://localhost:9999
 # Flask user web: http://localhost:5000/ - k -n agents port-forward service/user-web-dapr 5000:80
+# MCP: http://localhost:8001 - k -n agents port-forward service/mcp-svc 8001:8001 & 
 # Optional: Tilt : http://localhost:10350 
 # ##Monitoring##
 # Zipkin tracing tool: http://localhost:9411 # see https://docs.dapr.io/operations/observability/tracing/zipkin/
 #                                             - k -n default port-forward service/dapr-dev-zipkin 9411:9411 &
 # Prometheus: http://localhost:9090 - k port-forward svc/dapr-prom-prometheus-server 9090:80 -n dapr-monitoring &
 # Prometheus Alertmanager: http://localhost:9093 - k port-forward svc/dapr-prom-alertmanager 9093:9093 -n dapr-monitoring &
-# Grafana: http://localhost:8080 - kubectl port-forward svc/grafana 8080:80 -n dapr-monitoring &
+# Grafana: http://localhost:8080 - k port-forward svc/grafana 8080:80 -n dapr-monitoring &
 --Ports info--
 "

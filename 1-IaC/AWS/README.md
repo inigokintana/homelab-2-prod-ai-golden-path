@@ -113,6 +113,9 @@ tofu version
    # use ssh tunnel: ssh -i aipoc.pem  -L 5000:localhost:5000 ubuntu@instance_public_ip
    # port forward must be running inside EC2: k -n agents port-forward service/user-web-dapr 5000:80 &
 
+   # MCP: http://localhost:8001 - k -n agents port-forward service/mcp-svc 8001:8001 & 
+   # use ssh tunnel: ssh -i aipoc.pem  -L 8001:localhost:8001 ubuntu@instance_public_ip
+
    # Tilt port 10350
    # use ssh tunnel: ssh -i aipoc.pem  -L 10350:localhost:10350 ubuntu@instance_public_ip
 
@@ -139,6 +142,7 @@ tofu version
    -L 15432:localhost:15432 \
    -L 9999:localhost:9999 \
    -L 5000:localhost:5000 \
+   -L 8001:localhost:8001 \
    -L 10350:localhost:10350 \
    -L 9411:localhost:9411 \
    -L 9090:localhost:9090 \
