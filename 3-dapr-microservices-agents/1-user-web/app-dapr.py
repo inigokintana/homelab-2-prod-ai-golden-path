@@ -79,6 +79,8 @@ def get_rag_context(user_prompt: str) -> str:
     
     try:
         sqlCmd = ("SELECT  text,embedding <=> ai.ollama_embed('all-minilm', '{user_prompt}') FROM dapr_web_embeddings ORDER BY embedding LIMIT 5;".format(user_prompt=user_prompt))
+        #sqlCmd = ("SELECT  text,embedding <=> ai.ollama_embed('all-minilm', '{user_prompt}') FROM dapr_web_embeddings 
+            #     UNION SELECT chunk,embedding <=> ai.ollama_embed('all-minilm', '{user_prompt}') FROM  good_answers_embeddings ORDER BY embedding LIMIT 5;".format(user_prompt=user_prompt))
         payload = {'sql': sqlCmd}
         logger.debug(f"Query SQL payload: {payload}")
         logger.info(f"Invoking Dapr binding '{DAPR_BINDING_NAME}' with query...")

@@ -301,16 +301,26 @@ curl http://localhost:11434/api/generate -d '{
 ########
 cd /root/homelab-2-prod-ai-golden-path/2-mandatory-k8s-services/timescaleDB/deploy
 k  apply -f namespace.yaml
-k  apply -f data-pv.yaml
-k  apply -f data-pv-claim.yaml
-# we need to change permisson in the mount point
+# we need to change permisson in the mount point /mnt/pgdata
 sudo mkdir -p /mnt/pgdata
 sudo chmod 770 /mnt/pgdata 
 sudo chown 1000:microk8s /mnt/pgdata # tricky permissions because we use a PersistentVolume backed by hostPath - 1000 is the user id of the timescaleDB container postgres user
+# we need to change permission in the mount point /mnt/docs
+sudo mkdir -p /mnt/docs
+sudo chmod 770 /mnt/docs
+sudo chown nobody:microk8s /mnt/docs
+# create PV and PVC in k8s - Vectorizer neeeds access to the local filesystem /mnt/docs
+k apply -f data-pv.yaml # pg
+k apply -f data-pv-claim.yaml # pg
+k apply -f pv-app-doc.yaml # docs
+k apply -f pvc-app-doc.yaml # docs
+# secret  for pgvector DB access
 k  apply -f secret-pgvector.yaml
+# deployment and service
 # vectorizer to ollama connection config is done with k8s DNS no Dapr naming - to check with Dapr naming app_id='ollama-llm.ollama' 
 # post http://localhost:3500/v1.0/invoke/ollama-llm.ollama/method/chat
 k  apply -f deployment.yaml
+echo "Waiting for TimescaleDB and Vectorizer to be ready..."
 k  apply -f service.yaml
 # Wait for the TimeScaleDB pgvector pod to be in Running state
 TARGET_POD="pgvector"
@@ -402,6 +412,38 @@ else
 fi
 # 5000 flask port forward
 k -n agents port-forward service/user-web-dapr 5000:80 &
+
+## 6.5 - Docs injection agent
+########
+# create database table & create the vectorized table
+cd ~/homelab-2-prod-ai-golden-path/3-dapr-microservices-agents/3-injection-agent-docs/
+psql -U postgres -d postgres -h localhost -p 15432 < .sql/create-table.sql
+psql -U postgres -d postgres -h localhost -p 15432 < .sql/create-vectorized-table.sql
+# create local registry image -  build the image with microk8s docker
+docker build -t localhost:32000/docs-sync:latest .
+# push the image to the local registry
+docker push localhost:32000/docs-sync:latest   
+# k8s deployment in pgvector namespace - it needs access to the local filesystem
+k apply -f ./k8s/base/pv.yaml
+k apply -f ./k8s/base/pvc.yaml
+k apply -f ./k8s/base/configmap.yaml
+k apply -f ./k8s/base/secret-binding.yaml
+k apply -f ./k8s/base/secret-reader-role.yaml
+k apply -f ./k8s/base/secret-reader-rolebinding.yaml
+k apply -f ./k8s/base/deployment.yaml
+# Pending when we use kustomize
+#k apply -f ./k8s/overlays/dev/output_dev.yaml
+
+# wait for user-web to be ready
+TARGET_POD="docs-sync"
+NAMESPACE="pgvector"
+if wait_for_pod "$TARGET_POD" "$NAMESPACE"; then
+    echo "➡ Continuing script execution..."
+else
+    echo "Exiting script due to pod not running."
+    exit 1
+fi
+# No need to port forward - it is a backend agent
 
 ## 6.6 - MCP
 ########

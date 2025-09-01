@@ -11,14 +11,21 @@ To be able to provide an OSS stack we have chosen Dapr in our golden path (opini
     - Chainlit is an open-source Python framework designed to help developers build and deploy conversational AI applications with a focus on ease of use and minimal front-end development. It's essentially a toolkit for creating user interfaces for large language models (LLMs) and AI agents, allowing developers to focus on the core logic of their AI application in Python without getting bogged down in web development complexities
     - Chainlit is running under Python code container in AI Agent part in the image -  see this line in Dockerfile: CMD ["chainlit", "run", "app.py", "-w", "--host", "127.0.0.1", "--port", "8001"]
     - MCP server is installed inside same POD as AI agent  but in a different container that is why we configure traffic under 127.0.0.1(localhost) IP and not 0.0.0.0 (all intefaces - too much opened). We could have configured it in another POD and namespace closer to a fully Remote Service style but you can do it as you wish.
-    - **Redis is it being used** by dapr_agents? It seems not. The agent will NOT remember all the previous conversation if this is not working
+    - **Is Redis is being used** by dapr_agents? It seems not. The agent will NOT remember all the previous conversation if code is not changed with "from dapr_agents.memory import ConversationDaprStateMemory" and " memory=ConversationDaprStateMemory(store_name="conversationstore", session_id="my-unique-id")" in the agent code part
     ````
         I have no name!@dapr-dev-redis-master-0:/$ redis-cli
         127.0.0.1:6379>  AUTH xxxxxx
         OK
         127.0.0.1:6379> KEYS *
         1) "nodeapp||order"
+        2) "mcp-agent-pg-openai-server-mcp||my-unique-id"
+        127.0.0.1:6379> HGETALL "mcp-agent-pg-openai-server-mcp||my-unique-id"
+            1) "version"
+            2) "6"
+            3) "data"
+            4) "[{\"content\":\"Here is the schema for the tables in the database:\\n\\nTable _timescaledb_cache.cache_inval_bgw_job:\\n\\nUser's question: how many rows are in document_metadata table?\\nGenerate the postgres SQL query to answer the user's question. Return only the query string and nothing else.\",\"role\":\"user\",\"sessionId\":\"my-unique-id\",\"createdAt\":\"2025-09-01T15:24:27.077912Z\"},{\"content\":\"```sql\\nSELECT COUNT(*) FROM document_metadata;\\n```\",\"role\":\"assistant\",\"sessionId\":\"my-unique-id\",\"createdAt\":\"2025-09-01T15:24:29.022676Z\"},{\"sessionId\":\"my-unique-id\",\"createdAt\":\"2025-09-01T15:24:29.079431Z\",\"content\":\"Execute the following sql query and always return a table format unless instructed otherwise. If the user asks a question regarding the data, return the result and formalize an answer based on inspecting the data: ```sql\\nSELECT COUNT(*) FROM document_metadata;\\n```\",\"role\":\"user\"},{\"content\":null,\"role\":\"assistant\",\"tool_calls\":[{\"function\":{\"name\":\"LocalExecuteSql\",\"arguments\":\"{\\\"sql\\\":\\\"SELECT COUNT(*) FROM document_metadata;\\\"}\"},\"id\":\"call_hdtbQVNThGgKvYw1HgBosfWe\",\"type\":\"function\"}],\"sessionId\":\"my-unique-id\",\"createdAt\":\"2025-09-01T15:24:29.755210Z\"},{\"role\":\"tool\",\"name\":\"LocalExecuteSql\",\"tool_call_id\":\"call_hdtbQVNThGgKvYw1HgBosfWe\",\"sessionId\":\"my-unique-id\",\"createdAt\":\"2025-09-01T15:24:29.835055Z\",\"content\":\"[{'count': 1}]\"},{\"content\":\"| count |\\n|-------|\\n| 1     |\\n\\nThe document_metadata table contains 1 row.\",\"role\":\"assistant\",\"sessionId\":\"my-unique-id\",\"createdAt\":\"2025-09-01T15:24:30.505339Z\"}]"
     ````
+    - **Pending**: convert database conection and variables in configmaps & secrets that can be accesed via Dapr
 
 # 2 - How do we install it?
 

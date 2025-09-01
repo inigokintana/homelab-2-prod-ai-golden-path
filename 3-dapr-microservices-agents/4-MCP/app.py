@@ -3,6 +3,7 @@ import chainlit as cl
 from get_schema import get_table_schema_as_dict
 
 from dapr_agents import Agent
+from dapr_agents.memory import ConversationDaprStateMemory
 from dapr_agents.tool.mcp.client import MCPClient
 from dapr_agents.types import AssistantMessage
 import os
@@ -48,6 +49,9 @@ async def start():
         role="Database Expert",
         instructions=instructions,
         tools=tools,
+        memory=ConversationDaprStateMemory(
+            store_name="conversationstore", session_id="my-unique-id"
+            ), # here we say to use redis
     )
 
     global table_info

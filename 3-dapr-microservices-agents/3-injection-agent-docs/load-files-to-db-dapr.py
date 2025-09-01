@@ -1,4 +1,8 @@
-import os
+## WIP convert into Dapr
+## WIP convert into Dapr
+## WIP convert into Dapr
+# 
+# import os
 import psycopg2
 from datetime import datetime
 import hashlib # For content hashing, to detect actual content changes

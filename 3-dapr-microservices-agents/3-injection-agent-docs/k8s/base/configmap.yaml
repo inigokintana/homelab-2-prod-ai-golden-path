@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: doc-sync-config
-  namespace: agents
+  namespace: pgvector
 data:
   DB_NAME: "postgres"
   DB_HOST: "postgres-service"

@@ -4,5 +4,6 @@ dapr_docs_web
 k8s
 .venv
 .git
+.files
 #tilt
 start-time.txt

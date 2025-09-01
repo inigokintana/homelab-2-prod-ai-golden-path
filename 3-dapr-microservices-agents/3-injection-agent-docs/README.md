@@ -1,30 +1,43 @@
 
-**WIP**
-We se there are several options to implement this:
+# 1 - Context/Objective
+We see there are several options to implement this:
 
 - 1) pgAI is designed to read documents from for example S3, HTTP files or local files and store documents embedding in RAG database for semantic search. Here how [example 1](https://github.com/timescale/pgai/blob/main/docs/vectorizer/document-embeddings.md) and [example2](https://github.com/timescale/pgai/tree/main/examples/embeddings_from_documents).
 - 2) dapr agent getting PDFs from expecific [sites](https://github.com/dapr/dapr-agents/blob/249ea5ec43f75825f662992e765cb09b5fd31695/docs/concepts/arxiv_fetcher.md)
-- 3) Custom programming using Dapr building blocks or not . You can see a raw inmplementation here but we are not installing it automatically in K8S/shell script.
+- 3) Custom programming using Dapr building blocks or not .
 
-Still valuing the pros and cons of options 1) and 2) that seems more interesting than option 3) partly implemented here. 
 
-**WIP**
-https://github.com/timescale/pgai/blob/main/docs/vectorizer/api-reference.md#loading-configuration
-Environment configuration
-You just need to ensure the vectorizer worker has the correct credentials to access the file, such as in environment variables. Here is an example for AWS S3:
+We take a mix solution between options 1 and and 3:
+- Custom programming: 
+     - We use a shell script with inotify in and infinite loop that detects changes CRUD in a local filesystem /mnt/docs. We could have done it with S3 but it seems that in Opentofu there is no Hetzner support to provision Hetzner S3 type objects and we want to work both in AWS, Hetzner and WSL2. So, that is why we took local directory approach.
+     - All the files are CRUD  in a database table using Python with metadata
+     - **Pending**:
+        - Use DAPR in this custom programming Python part
+        - Forward Python log into Docker/K8S log
+        - Use kustomize to have a single YAML deployment file
+        - No Tilt use
+        - Modify user-web development adding UNION Select from this vectorized **table document_embeddings_store** to allow user promt to search in this table for more accurate answers
+- We use pgAI to automatically generate the vectorizer embedding of any change in the documents table but **MUST** have accest to the local file system
+- Requirements: In K8S it is not possible to share a fileystem between vectorizer and the custom programming POD unless you configure a NFS or you put both PODS in the same namespace. That it why we moved and deployed this agent into **pgvector** namespace.
 
-export AWS_ACCESS_KEY_ID='your_access_key'
-export AWS_SECRET_ACCESS_KEY='your_secret_key'
-export AWS_REGION='your_region'  # optional
 
-- sql 3-dapr-microservices-agents/3-injection-agent-docs/sql/create-table.sql
-- sql 3-dapr-microservices-agents/3-injection-agent-docs/sql/create-vectorized-table.sql
-- sudo mkdir /mnt/docs
-- keep same permisons as in /mnt/pgata directory - sudo chown 
-- sudo docker build --no-cache -t localhost:32000/docs-sync:latest .
-- sudo docker push localhost:32000/docs-sync:latest
-- k apply -f 3-dapr-microservices-agents/3-injection-agent-docs/k8s/base/pv.yaml
-- k apply -f 3-dapr-microservices-agents/3-injection-agent-docs/k8s/base/pvc.yaml
-- k apply -f 3-dapr-microservices-agents/3-injection-agent-docs/k8s/base/configmap.yaml
-- all yaml
-- 
+# 2 - How do we install it?
+
+Check step 6) and specifically step 6.5) in:
+- 1-IaC/AWS/opentofu/userdata.sh
+- 1-IaC/OVH-Hetzner/userdata.sh
+- 1-IaC/WSL2/install-in-WSL2.sh
+
+# 3 - Project Structure
+
+```
+.
+├── sql/                      # SQL scripts for table creation
+├── k8s/
+│   ├── base/                 # Base Kubernetes manifests
+├── Dockerfile                # Docker build for the scraper
+├── monitor_docs.sh           # Shell scripts monitoring CRUD files are in directory - it calls to load-files-to-db.py
+├── load-files-to-db.py       # Python scraper and logic
+├── load-files-to-db-dapr.py  # Pending to be adjust to Dapr SDK
+└── README.md
+```

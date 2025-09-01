@@ -2,13 +2,13 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: docs-sync-deployment
-  namespace: agents
+  namespace: pgvector
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: docs-sync
-  template:
+  template: 
     metadata:
       labels:
         app: docs-sync

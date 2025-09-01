@@ -41,6 +41,9 @@ spec:
           value: postgres://postgres:pgvector@localhost:5432/postgres
         - name: OLLAMA_HOST
           value: http://ollama.ollama.svc.cluster.local
+        volumeMounts:
+        - name: docs-storage
+          mountPath: /app/docs 
       - name: pgvector
         # Use the pgvector image for PostgreSQL 17 https://hub.docker.com/r/pgvector/pgvector/tags
         # image: pgvector/pgvector:pg17
@@ -65,3 +68,6 @@ spec:
       - name: pgdata
         persistentVolumeClaim:
           claimName: pgdata-pvc
+      - name: docs-storage
+        persistentVolumeClaim:
+          claimName: docs-pvc

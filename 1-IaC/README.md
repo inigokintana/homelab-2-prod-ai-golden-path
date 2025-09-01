@@ -12,10 +12,10 @@ We are providing:
 - 3) Installs MicroK8s  
 - 4) Install Dapr
 - 5) Install mandatory k8s services for this POC - Ollama, PostgreSQL, pg AI
-- 6) Install dapr microservices agents in K8s:data ingestor with scraper and Flask user-web
+- 6) Install dapr microservices agents in K8s:data ingestor with scraper, Flask user-web, documents agent and MCP agent
 - 7) Install optional tools: Opentofu, Kustomize and Visual Studio Code
 
-**Important NOTICE about IaC**: shell script does not properly manage the state so it is very basic IaC.  OpenTofu, on the other hand, is fully compliant IaC as it is built with State tracking, Idempotence (safe to re-run), Dependency graph, Rollback support, Plan before apply and is Modular & composable. Please, if you go to PROD consider migrating some steps of the shell script into OpenTofu, for example:
+**Important NOTICE about IaC**: shell script does not properly manage the state so it is very basic IaC.  OpenTofu, on the other hand, is fully compliant IaC as it is built with State tracking, Idempotence (safe to re-run), Dependency graph, Rollback support, Plan before apply and is Modular & composable. Please, if you go to PROD consider migrating some steps of the shell script into OpenTofu & Ansible, for example:
 - Step 4 install Dapr with Helm with [OpenTofu Helm provider](https://search.opentofu.org/provider/opentofu/helm/latest)
 - All the kubectl apply commands in steps 5 and 6, install them with [OpenTofu Kubectl Provider](https://search.opentofu.org/provider/opentofu/kubernetes/v2.0.0)
 
