@@ -191,4 +191,5 @@ Tilt makes you work directly into Kubernetes to ease developement. Tilt automate
 ## 3.12 - Which data?
 - It is hard to find a good/curated dataset.
 - Finally, I decided to scrap updated data from web to chunk it and vectorize it in our own database.
+- You can put several documents into /mnt/docs and will get vectorized.
 - Adapt the data to your business case.

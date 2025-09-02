@@ -11,13 +11,15 @@
     - We can create some PDF & DOCx files with different demo data to simulate local sources to play with the selected LLM
 
 So, we are going to create some python demo projects:
+![Applications](../docs/applications-view.png)
 - **2-injection-agent-web-dapr** - simple python using scraper that loads updated dapr documentation into a postgreSQL table that will be vectorized inmediatly thanks to pgAI. We use Dpar building blocks.
 - **1-user-web**: flask web page where user can ask questions, we use daor building blocks.
     - previously, the question is embbeded by Ollama and done a semantic search inside PostgreSQL RAG database
     - Then all is sent back to Ollama LLM/SLM and optionally to OpenAI 
     - Ollama or OpenAI answer is given to the user
     - **Note**: for OpenAI usage you must install your API KEY. You must install it in a secret as explained in install script.
-- More demos to come ...
+- **3-injection-agent-docs**: documents text you add into /mnt/docs directory are going to be automatically vectorized into postgresql database. User web will use it so locall LLM can give a more accurate answer.
+- **4-MCP**: MCP agent, postgreSQL MCP server and our Postgresql database asking to OpenAI how to do some selects on PostgreSQL using Chainlit and saving the context in Redis.
 
 # How to install it
 Check step 6) in:

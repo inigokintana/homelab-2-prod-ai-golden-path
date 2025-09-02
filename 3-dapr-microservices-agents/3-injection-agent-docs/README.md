@@ -8,6 +8,7 @@ We see there are several options to implement this:
 
 
 We take a mix solution between options 1 and and 3:
+![Applications](../../docs/applications-view.png)
 - Custom programming: 
      - We use a shell script with inotify in and infinite loop that detects changes CRUD in a local filesystem /mnt/docs. We could have done it with S3 but it seems that in Opentofu there is no Hetzner support to provision Hetzner S3 type objects and we want to work both in AWS, Hetzner and WSL2. So, that is why we took local directory approach.
      - All the files are CRUD  in a database table using Python with metadata

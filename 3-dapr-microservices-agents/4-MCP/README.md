@@ -1,6 +1,8 @@
 # 1- Objective
 
-We want to play with MCP architecture agent and Dapr.
+We want to play with MCP architecture agent and Dapr. We have one MCP agent, one postgreSQL MCP server and our Postgresql database and asking to OpenAI how to do some selects on PostgreSQL using Chainlit and saving the context in Redis.
+
+![Applications](../../docs/applications-view.png)
 
 To be able to provide an OSS stack we have chosen Dapr in our golden path (opinionated shortcut) and Dapr has its own MCP path:
  - Please see [Dapr Agents Framework and Roadmap](https://github.com/dapr/dapr-agents/blob/249ea5ec43f75825f662992e765cb09b5fd31695/README.md)

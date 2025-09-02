@@ -1,4 +1,7 @@
 # 1- Monitoring tools:
+
+![Applications](../docs/applications-view.png)
+
 ## 1.1 - Zipkin:
 - Zipkin allows us to follow traces between microservices calls graphically.
 - Zipkin is installed by default with dapr enin dev environment.

@@ -30,7 +30,7 @@
 -- # https://github.com/timescale/pgai/tree/main/examples/embeddings_from_documents
 -- # https://github.com/timescale/pgai/blob/main/docs/vectorizer/api-reference.md#ailoading_uri
 -- # 
-
+CREATE EXTENSION IF NOT EXISTS ai CASCADE;
 CREATE EXTENSION IF NOT EXISTS vectorscale CASCADE;
 -- CREATE EXTENSION IF NOT EXISTS ai CASCADE;
 

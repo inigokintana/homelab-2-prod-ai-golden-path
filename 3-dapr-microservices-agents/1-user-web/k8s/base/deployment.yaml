@@ -27,7 +27,7 @@ spec:
       containers:
       - name: user-web-dapr
         image: localhost:32000/user-web-dapr:latest  # Replace with your image
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         ports:
         - containerPort: 5000
         env:
