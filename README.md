@@ -71,7 +71,7 @@ In short, Kubernetes is designed to be flexible, extensible, and cloud-agnostic,
 ## 3.2 - Why microk8s?
 **MicroK8s is a great option for those who want a lightweight, minimal Kubernetes setup with production-ready features at a smaller scale**, and without the need for extra overhead. It is particularly useful for smaller deployments, edge computing, or environments where simplicity and cost are key factors.
 
-You can **start small and install microk8s under your PC WSL2/Ubuntu or AWS free tier machine and later on move those projects into [microk8s HA environment](https://www.cncf.io/online-programs/microk8s-ha-under-the-hood-kubernetes-with-dqlite/), EKS, AKS, GKS or OpenShift**. 
+You can **start small and install microk8s under your PC WSL2/Ubuntu or AWS virtual machine and later on move those projects into [microk8s HA environment](https://www.cncf.io/online-programs/microk8s-ha-under-the-hood-kubernetes-with-dqlite/), EKS, AKS, GKS or OpenShift**. 
 
 Unlike Kind or minikube, **mikroK8s** is intended for production workloads as an alternative to Openshifts. MicroK8s simplifies developer work and can be run in a cluster:
   - [microk8s Ubuntu 22.04 install](https://help.clouding.io/hc/en-us/articles/13572430913180-How-to-Setup-Lightweight-Kubernetes-with-MicroK8s-and-Snap-on-Ubuntu-22-04)
@@ -108,8 +108,7 @@ Additionally, recently provides AI agents and Conversation API with LLMs.  This 
 - Ensure privacy by processing data locally.
 - It’s ideal for developers, researchers, or anyone who wants to experiment with multiple LLMs without being locked into a specific cloud vendor or paying for expensive API calls.
 
-**Be aware of Dapr support for Mistral and Mistral running on CPU** see [link](https://heidloff.net/article/running-mistral-locally-cpu/https://heidloff.net/article/running-mistral-locally-cpu/)
-- https://www.oneclickitsolution.com/centerofexcellence/aiml/run-mistral-7b-locally-hardware-software-specs
+**Be aware of Dapr support for Mistral and Mistral running on CPU** see [link](https://www.oneclickitsolution.com/centerofexcellence/aiml/run-mistral-7b-locally-hardware-software-specs)
 
 ## 3.5 - Why Open Telemetry?
 

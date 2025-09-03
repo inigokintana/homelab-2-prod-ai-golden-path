@@ -3,11 +3,9 @@ homelab-2-prod-ai-golden-path
 
 Pending:
 
-- Video / script / Demo in AWS 47 sec
-- docs s3 or github docs
-	select dapr_web docs good_answers
-- Dapr Ai agents & MCP
-- test install wsl in another wsl
+- Test userdata in AWS & Hetner
+- Video / script / Demo in Hetzner or AWS 47 sec
+
 
 - what would you use inside kubernetes for ai agents, semantic kernel or dapr?
 thanks but have you considered dapr has workflow capabilities?
@@ -36,3 +34,9 @@ You need LLM-driven decision-making & function chaining	Semantic Kernel
 You need agents from different frameworks/vendors to talk to each other	Google A2A
 You need both reliability & reasoning	SK inside a Dapr Workflow (hybrid)
 You need cross-vendor AI ecosystems	A2A with Dapr or SK as the local orchestrator
+***
+
+Your a Kubernetes, python and Docker expert DevOPs. We want to have a k8s container that is able to hostpath inside container DOCS directory . 
+Please provide the k8s YAML file.  Take into account we already know how to create the Dockerfile, shell scripts that detects any file changes in DOCS directory and the python script load-files-db-py that createsfiles info into postgreSQL database.
+
+
