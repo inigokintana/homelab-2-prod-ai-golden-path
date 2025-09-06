@@ -19,14 +19,14 @@ We explore concepts like AI agents, RAG and LLM using OSS technologies like Linu
 │   ├── dapr: distributed application runtime helping microservices standardization and agent implementation
 │   ├── ollama: local LLM offering an API
 │   ├── timescaleDB: postgreSQL with vector database support, our RAG database, pgAI vectorizer
-├── 3-dapr-microservices-agents: microservices and agents inserting data into database and passing it trought to LLM
+├── 3-dapr-microservices-agents: microservices and agents inserting data into database and passing it through to LLM
 │   ├── 1-user-web
 │   ├── 2-injection-agent-web-dapr
-│   ├── 3-injection-agent-docs
+│   ├── 3-injection-agent-docs  
 │   ├── 4-MCP 
 └── 4-optional-k8s-services: monitoring with Zipkin, Prometheus & Grafana - DONE. 
 │                           Jupyter Notebooks, MLflow vs KubeFLow, ArgoCD - Pending.
-└── Docs
+└── Docs: some documents and references to help to have an holistic/global view on AI 
 ``` 
 # 2 - Install
 
@@ -161,7 +161,7 @@ OpenTofu (formerly known as Terraform) is the community driven OSS tool for Infr
 - Postgres support vector format in order to perform semantic search in RAG data, [see project](https://github.com/pgvector/pgvector)
 - Timescale DB is build in top of Postgres providing among other features timeseries extended capabilities and Vectorizer automation. Vectorizer automation , called **pgai vectorizer**, provides continuous creation/update of vector data and its index for semantic search is a super nice feature that we can take advantage of, please see [link1 blog](https://www.timescale.com/blog/vector-databases-are-the-wrong-abstraction) and [link2 you tube video](https://www.youtube.com/watch?v=ZoC2XYol6Zk)
 - See **pgai vectorizer** ![process architecture](./docs/pgai-vectorizer.png)
-- Timescale DB license protection is againts Cloud Hiperscalers, we can use it safely see [log](https://www.timescale.com/blog/how-we-are-building-a-self-sustaining-open-source-business-in-the-cloud-era#what-does-this-mean-for-me)
+- Timescale DB license protection is againts Cloud Hiperscalers, we can use it safely see [blog](https://www.timescale.com/blog/how-we-are-building-a-self-sustaining-open-source-business-in-the-cloud-era#what-does-this-mean-for-me)
 
 ## 3.9 - Why Shell script & kubectl & Helm over Ansible to automate internal configuration?
 Ideally, in this POC, **we are going to install everything in one VM inside microK8s**:

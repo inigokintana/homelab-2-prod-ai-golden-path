@@ -35,8 +35,3 @@ You need agents from different frameworks/vendors to talk to each other	Google A
 You need both reliability & reasoning	SK inside a Dapr Workflow (hybrid)
 You need cross-vendor AI ecosystems	A2A with Dapr or SK as the local orchestrator
 ***
-
-Your a Kubernetes, python and Docker expert DevOPs. We want to have a k8s container that is able to hostpath inside container DOCS directory . 
-Please provide the k8s YAML file.  Take into account we already know how to create the Dockerfile, shell scripts that detects any file changes in DOCS directory and the python script load-files-db-py that createsfiles info into postgreSQL database.
-
-
