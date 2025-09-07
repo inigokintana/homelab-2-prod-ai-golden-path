@@ -17,6 +17,5 @@
 3-dapr-microservices-agents/3-injection-agent-docs/log
 3-dapr-microservices-agents/1-user-web/.venv
 3-dapr-microservices-agents/4-MCP/.venv
-3-dapr-microservices-agents/4-MCP/.chainlit
 3-dapr-microservices-agents/4-MCP/.files
 3-dapr-microservices-agents/4-MCP/__pycache__

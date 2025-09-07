@@ -1,14 +1,15 @@
 # Homelab to PROD golden path on AI
 
-This is a golden path A.K.A an opinionated shortcut,  to explore AI from local homelab to PROD using OSS for technological independence and local LLM for privacy. 
-
-We explore concepts like AI agents, RAG and LLM using OSS technologies like Linux, Opentofu, microk8s, DAPR, Ollama, TimescaleDB & pgai Vectorizer, Flask and Python.
-
-
-# 1 - Project structure:
+This is a golden path A.K.A an opinionated shortcut, to explore AI from local homelab to PROD using OSS for technological independence and local LLM/SLM for privacy. 
 
 - **you tube VIDEO** **WIP coming soon**
 - **[PDF presentation slides](./docs/Presentation-homelab-2-prod-ai-golden-path.pdf)**
+
+In this simple use case, we ingest your web/intranet and local documents into a local authoritative RAG database and connect a local SLM (Small Language Model) so it can return accurate results with minimum resources. We test an MCP architecture development against our local database as well.
+
+We explore concepts like AI agents, RAG, LLM/SLM and MCP architecture using OSS technologies like Linux, Opentofu, microk8s, DAPR, Ollama, TimescaleDB & pgai Vectorizer, Flask, Chainlit and Python.
+
+# 1 - Project structure:
 
 ```
 ├── 1-IaC: we choose kubernetes microK8S implementation as the neutral vendor platform to run differents POCs
@@ -17,8 +18,8 @@ We explore concepts like AI agents, RAG and LLM using OSS technologies like Linu
 │   └── OVH-Hetzner: TF/OpenTofu scripts to run it in Hetzner Ubuntu 22.04 European provider
 ├── 2-mandatory-k8s-services: mandatory services to install in K8S
 │   ├── dapr: distributed application runtime helping microservices standardization and agent implementation
-│   ├── ollama: local LLM offering an API
-│   ├── timescaleDB: postgreSQL with vector database support, our RAG database, pgAI vectorizer
+│   ├── ollama: local LLM/SLM offering an API
+│   ├── timescaleDB: postgreSQL with vector database support, our RAG database using pgAI vectorizer
 ├── 3-dapr-microservices-agents: microservices and agents inserting data into database and passing it through to LLM
 │   ├── 1-user-web
 │   ├── 2-injection-agent-web-dapr
@@ -28,6 +29,7 @@ We explore concepts like AI agents, RAG and LLM using OSS technologies like Linu
 │                           Jupyter Notebooks, MLflow vs KubeFLow, ArgoCD - Pending.
 └── Docs: some documents and references to help to have an holistic/global view on AI 
 ``` 
+
 # 2 - Install
 
 Go into "1 - IaC" subfolder, select your infra and credentials and execute within.

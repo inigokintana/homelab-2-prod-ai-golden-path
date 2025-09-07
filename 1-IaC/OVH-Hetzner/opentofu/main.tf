@@ -3,7 +3,7 @@
 #################
 variable "sg_ip_cidr" {
   type    = string
-  default = "88.10.73.108/32" # Your router's public IP
+  default = "88.10.79.208/32" # Your router's public IP
 }
 
 # sensitive and not default means it will ask for token at runtime

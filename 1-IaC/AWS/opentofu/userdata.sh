@@ -414,8 +414,8 @@ k -n agents port-forward service/user-web-dapr 5000:80 &
 ########
 # create database table & create the vectorized table
 cd ~/homelab-2-prod-ai-golden-path/3-dapr-microservices-agents/3-injection-agent-docs/
-psql -U postgres -d postgres -h localhost -p 15432 < .sql/create-table.sql
-psql -U postgres -d postgres -h localhost -p 15432 < .sql/create-vectorized-table.sql
+psql -U postgres -d postgres -h localhost -p 15432 < ./sql/create-table.sql
+psql -U postgres -d postgres -h localhost -p 15432 < ./sql/create-vectorized-table.sql
 # create local registry image -  build the image with microk8s docker
 docker build -t localhost:32000/docs-sync:latest .
 # push the image to the local registry
