@@ -32,36 +32,11 @@
 -- # 
 CREATE EXTENSION IF NOT EXISTS ai CASCADE;
 CREATE EXTENSION IF NOT EXISTS vectorscale CASCADE;
--- CREATE EXTENSION IF NOT EXISTS ai CASCADE;
 
--- CREATE TABLE IF NOT EXISTS document_metadata 
---     ( 
---     id SERIAL PRIMARY KEY, 
---     title TEXT NOT NULL,
---     uri TEXT NOT NULL, 
---     content_hash TEXT NOT NULL, 
---     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP, 
---     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP, 
---     content_type TEXT NOT NULL, 
---     owner_id INTEGER, 
---     access_level TEXT, 
---     tags TEXT[] 
---     );
-
--- Example with rich metadata INSERT INTO document_metadata (title, uri, content_type, owner_id, access_level, tags) VALUES ('Product Manual', 's3://my-bucket/documents/product-manual.pdf', 'application/pdf', 12, 'internal', ARRAY['product', 'reference']), ('API Reference', 's3://my-bucket/documents/api-reference.md', 'text/markdown', 8, 'public', ARRAY['api', 'developer']);
-
-File access
+-- File access
 -- Verify PostgreSQL has read permissions for the document files. Ensure file paths are correct and accessible.
 -- vectorizer table creation
 
-
--- SELECT ai.create_vectorizer(     
---     'good_answers'::regclass, 
---     loading => ai.loading_column('answer'),
---     destination => ai.destination_table (target_table => 'good_answers_embeddings_store', 
---                      view_name => 'good_answers_embeddings'),     
---     embedding => ai.embedding_ollama('all-minilm', 384),     
---     chunking => ai.chunking_recursive_character_text_splitter(800));
 
 SELECT ai.create_vectorizer( 
     'document_metadata'::regclass, 
@@ -75,7 +50,9 @@ SELECT ai.create_vectorizer(
 );
 -- Check the status of the vectorizer
   SELECT * FROM ai.vectorizer_status;
--- advance query
+
+
+-- advance query exxample
 -- Find documents relevant to customers with pending support tickets 
 -- SELECT c.name, d.title, e.chunk 
 -- FROM customers c 

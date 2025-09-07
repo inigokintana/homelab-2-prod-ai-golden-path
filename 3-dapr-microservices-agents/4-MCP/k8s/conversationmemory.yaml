@@ -12,6 +12,8 @@ spec:
   # https://docs.dapr.io/operations/components/component-secrets/
   - name: redisPassword
     #value: "***" # put your redis password here
-    key:  redis-password
+    secretKeyRef:
+      name: dapr-dev-redis
+      key: redis-password
 auth:
-  secretStore: dapr-dev-redis # the namespace where the secret is stored 
+  secretStore: kubernetes # SECRET_STORE_NAME is the name of the configured secret store component. When running in Kubernetes and using a Kubernetes secret store, the field auth.SecretStore defaults to kubernetes and can be left empty.
