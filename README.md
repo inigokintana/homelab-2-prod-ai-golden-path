@@ -20,7 +20,7 @@ We explore concepts like AI agents, RAG, LLM/SLM and MCP architecture using OSS 
 │   ├── dapr: distributed application runtime helping microservices standardization and agent implementation
 │   ├── ollama: local LLM/SLM offering an API
 │   ├── timescaleDB: postgreSQL with vector database support, our RAG database using pgAI vectorizer
-├── 3-dapr-microservices-agents: microservices and agents inserting data into database and passing it through to LLM
+├── 3-dapr-microservices-agents: microservices and agents inserting data into database and passing it through to LLM/SLM
 │   ├── 1-user-web
 │   ├── 2-injection-agent-web-dapr
 │   ├── 3-injection-agent-docs  
@@ -36,7 +36,7 @@ Go into "1 - IaC" subfolder, select your infra and credentials and execute withi
 
 ## 3 - Golden path context
 
-We want to build a POC of AI agents (hands) getting data from local data sources and passing RAG results to local LLM (brain) with Ollama to get a human readable result.
+We want to build a POC of AI agents (hands) getting data from local data sources and passing RAG results to local LLM/SLM (brain) with Ollama to get a human readable result.
 
 Data is kept private and never goes outsite the company defined infrastructure.
 
@@ -87,7 +87,7 @@ This **option is specially valuable** when corporate close minded IT/SOC/SecOps/
 DAPR, [besides being in graduated status by CNCF](https://www.cncf.io/projects/dapr/),  provides building blocks for microservice applications, see image from this [link](https://dev.to/aws-builders/speed-up-microservices-development-with-dapr-on-aws-ek-85l):
 ![Dapr Building Blocks](./docs/Dapr-Building-Blocks.png)
 
-Additionally, recently provides AI agents and Conversation API with LLMs.  This a summary from [CNCF's Dapr AI Agents Blog](https://www.cncf.io/blog/2025/03/12/announcing-dapr-ai-agents/)
+Additionally, recently provides AI agents and Conversation API with LLM/SLMs.  This a summary from [CNCF's Dapr AI Agents Blog](https://www.cncf.io/blog/2025/03/12/announcing-dapr-ai-agents/)
 
 - **Robust and well-integrated workflow capabilities right from the very beginning**: Dapr Agents is built on top of Dapr’s full featured workflow engine. Dapr is reliable for production use cases. Dapr Agents uses Dapr’s proven workflow system, which is designed to handle failures, retries, and scaling. This gives 
 
@@ -97,18 +97,18 @@ Additionally, recently provides AI agents and Conversation API with LLMs.  This 
 
 - **OpenTelemetry support**: Dapr Agents offers metrics and tracing out-of-the-box, supporting Prometheus and OpenTelemetry formats respectively.
 
-- **Event-driven and non-deterministic execution**: next agent to respond can be dynamically determined by an LLM, enabling autonomous and evolving workflows.
+- **Event-driven and non-deterministic execution**: next agent to respond can be dynamically determined by an LLM/SLM, enabling autonomous and evolving workflows.
 
 - Additionally, **[Dapr can be used from any developer framework and python/Flask is carefully integrated](https://docs.dapr.io/concepts/overview/#developer-frameworks)**
 
 ## 3.4 - Why Ollama?
-**Ollama is a powerful tool for anyone looking to work with different LLMs in a local and vendor-neutral way**. It allows you to:
+**Ollama is a powerful tool for anyone looking to work with different LLM/SLMs in a local and vendor-neutral way**. It allows you to:
 
 - **Run multiple models locally (privacy & security)** without the need for cloud infrastructure.
 - Have ***full control over your models and hardware**. This allows you to choose the right model for your task, whether it’s for creative writing, summarization, answering questions, or any other use case. You can use any of the **[following models](https://github.com/ollama/ollama/blob/main/README.md#model-library) on the list** depending on your hardware mem/cpu constraints. **"You should have at least 8 GB of RAM available to run the 7B models, 16 GB to run the 13B models, and 32 GB to run the 33B models."**
 - Avoid cloud dependencies and costs. Still you can run it in any cloud, of course.
 - Ensure privacy by processing data locally.
-- It’s ideal for developers, researchers, or anyone who wants to experiment with multiple LLMs without being locked into a specific cloud vendor or paying for expensive API calls.
+- It’s ideal for developers, researchers, or anyone who wants to experiment with multiple LLM/SLMs without being locked into a specific cloud vendor or paying for expensive API calls.
 
 **Be aware of Dapr support for Mistral and Mistral running on CPU** see [link](https://www.oneclickitsolution.com/centerofexcellence/aiml/run-mistral-7b-locally-hardware-software-specs)
 
