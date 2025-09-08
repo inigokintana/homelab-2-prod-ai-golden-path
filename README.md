@@ -2,7 +2,7 @@
 
 This is a golden path A.K.A an opinionated shortcut, to explore AI from local homelab to PROD using OSS for technological independence and local LLM/SLM for privacy. 
 
-- **you tube VIDEO** **WIP coming soon**
+- **[See YouTube VIDEO](https://youtu.be/5n7JRWi9wgc)**
 - **[PDF presentation slides](./docs/Presentation-homelab-2-prod-ai-golden-path.pdf)**
 
 In this simple use case, we ingest your web/intranet and local documents into a local authoritative RAG database and connect a local SLM (Small Language Model) so it can return accurate results with minimum resources. We test an MCP architecture development against our local database as well.

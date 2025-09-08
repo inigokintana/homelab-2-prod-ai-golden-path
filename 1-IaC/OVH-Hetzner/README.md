@@ -127,7 +127,7 @@ tofu version
 
    # Grafana 8080
    # use ssh tunnel: ssh  -L 8080:localhost:8080 root@instance_public_ip
-   # port forward must be running inside Hetzner: k port-forward svc/dapr-prom-alertmanager 8080:80 -n dapr-monitoring &
+   # port forward must be running inside Hetzner: k port-forward svc/grafana 8080:80 -n dapr-monitoring &
 
    # All together in one ssh tunnel
    
