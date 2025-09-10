@@ -13,8 +13,14 @@ To be able to provide an OSS stack we have chosen Dapr in our golden path (opini
     - Chainlit is an open-source Python framework designed to help developers build and deploy conversational AI applications with a focus on ease of use and minimal front-end development. It's essentially a toolkit for creating user interfaces for large language models (LLMs) and AI agents, allowing developers to focus on the core logic of their AI application in Python without getting bogged down in web development complexities
     - Chainlit is running under Python code container in AI Agent part in the image -  see this line in Dockerfile: CMD ["chainlit", "run", "app.py", "-w", "--host", "127.0.0.1", "--port", "8001"]
     - MCP server is installed inside same POD as AI agent  but in a different container that is why we configure traffic under 127.0.0.1(localhost) IP and not 0.0.0.0 (all intefaces - too much opened). We could have configured it in another POD and namespace closer to a fully Remote Service style but you can do it as you wish.
-    - **Is Redis is being used** by dapr_agents? It seems not. The agent will NOT remember all the previous conversation if code is not changed with "from dapr_agents.memory import ConversationDaprStateMemory" and " memory=ConversationDaprStateMemory(store_name="conversationstore", session_id="my-unique-id")" in the agent code part
+    - **Is Redis is being used** by dapr_agents? It seems not. The agent will NOT remember all the previous conversation if code is not changed with "from dapr_agents.memory import ConversationDaprStateMemory" and " memory=ConversationDaprStateMemory(store_name="conversationstore", session_id="my-unique-id")" in the agent code part. So, we changed the original code to make it work, see [the issue](https://github.com/dapr/dapr-agents/issues/191).
     ````
+        k -n default get all
+        NAME                                  READY   STATUS    RESTARTS        AGE
+        pod/dapr-dev-redis-master-0           1/1     Running   3 (7m50s ago)   41h
+
+        k -n default exec -it pod/dapr-dev-redis-master-0 -- sh
+
         I have no name!@dapr-dev-redis-master-0:/$ redis-cli
         127.0.0.1:6379>  AUTH xxxxxx
         OK
@@ -40,8 +46,11 @@ Additionaly, to recreate an OpenAI API_KEY:
 - change it in deployment.yaml and redeploy, remember is was created as a secret in step 6.4
 
 # 3 - Project Structure
+
+**BE careful** the DB passwords are inside the CODE - This is something we MUST change!!!!
 ```
 ├── k8s                       # Kubernetes deployment
 ├── Dockerfile                # Docker build  
 └── README.md
+
 ```

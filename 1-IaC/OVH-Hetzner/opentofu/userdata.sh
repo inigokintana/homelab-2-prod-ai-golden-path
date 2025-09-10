@@ -416,7 +416,7 @@ k -n agents port-forward service/user-web-dapr 5000:80 &
 ## 6.5 - Docs injection agent
 ########
 # create database table & create the vectorized table
-cd ~/homelab-2-prod-ai-golden-path/3-dapr-microservices-agents/3-injection-agent-docs/
+cd /root/homelab-2-prod-ai-golden-path/3-dapr-microservices-agents/3-injection-agent-docs/
 psql -U postgres -d postgres -h localhost -p 15432 < ./sql/create-table.sql
 psql -U postgres -d postgres -h localhost -p 15432 < ./sql/create-vectorized-table.sql
 # create local registry image -  build the image with microk8s docker
@@ -447,7 +447,7 @@ fi
 
 ## 6.6 - MCP
 ########
-cd ~/homelab-2-prod-ai-golden-path/3-dapr-microservices-agents/4-MCP
+cd /root/homelab-2-prod-ai-golden-path/3-dapr-microservices-agents/4-MCP
 # No need to create database table 
 # create local registry image -  build the image with microk8s docker
 docker build -t localhost:32000/mcp-agent-pg-openai:latest .
