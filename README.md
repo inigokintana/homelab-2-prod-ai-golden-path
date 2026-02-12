@@ -1,6 +1,6 @@
-# Homelab to PROD golden path on AI
+# Homelab to PROD golden path on AI or SovereignCloudAISherpa
 
-This is a golden path A.K.A an opinionated shortcut, to explore AI from local homelab to PROD using OSS for technological independence and local LLM/SLM for privacy. 
+This is a golden path A.K.A an opinionated shortcut **SovereignCloudAISherpa**, to explore AI from local homelab to PROD using OSS for technological independence and local LLM/SLM for privacy. 
 
 - **[See YouTube VIDEO](https://youtu.be/5n7JRWi9wgc)**
 - **[PDF presentation slides](./docs/Presentation-homelab-2-prod-ai-golden-path.pdf)**
